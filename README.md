@@ -57,7 +57,7 @@ When first starting a Neo4j DBMS, there is always a single default user neo4j wi
 sudo neo4j-admin set-initial-password [password]
 ```
 
-After completing steps above you will be able to connect to database using Neo4j Browser available at address http://localhost:7687 or using `cypher-shell`:
+After completing steps above you will be able to connect to database using Neo4j Browser available at address http://localhost:7474 or using `cypher-shell`:
 ```shell
 cypher-shell -u neo4j -p
 ```
