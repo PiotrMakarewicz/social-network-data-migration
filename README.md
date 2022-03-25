@@ -32,6 +32,15 @@ psql -U sna_user salon24 < [filename]
 
 Now you can use database management software (for example DataGrip) to connect to the database using user-password authentication and execute queries.
 
+### PostgreSQL data import - Huffington Post
+
+`[filename]` stands for the name of a .backup file with database backup
+
+```
+sudo -u postgres pg_restore -f [filename]
+```
+
+
 ### Neo4j database
 
 Add repository:
