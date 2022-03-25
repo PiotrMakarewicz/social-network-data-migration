@@ -6,10 +6,10 @@ BSc thesis. Authors: Gabriel Kępka, Piotr Makarewicz
 
 ### PostgreSQL database - Salon24 data import
 
-PostgreSQL is added to Ubuntu by default, so all we need to do is import the data from an SQL file. `[filename]` stands for the name of .sql file with database dump. First we need to create new `sna_user` role with `LOGIN` attribute, which will be an owner of database.
+PostgreSQL is added to Ubuntu by default, so all we need to do is import the data from an SQL file. First we need to create new `sna_user` role with `LOGIN` attribute, which will be an owner of database.
 
 ```shell
-sudo -u postgres psql -c "CREATE ROLE sna_user LOGIN; ALTER ROLE sna_user PASSWORD '[password]';"
+sudo -u postgres psql -c "CREATE ROLE sna_user LOGIN; ALTER ROLE sna_user PASSWORD 'password';"
 ```
 By default PostgreSQL uses `peer` authentication method for local connections, i.e. comparing operating system user name with database user name and allowing to log in only if they match. To enable login and password authentication we need to modify `/etc/postgresql/14/main/pg_hba.conf` configuration file, changing `METHOD` field value from `peer` to `md5`:
 
@@ -23,11 +23,11 @@ PostgreSQL service has to be restarted to initialize new configuration:
 ```shell
 systemctl restart postgresql
 ```
-Then we create a new database `socialdata` and populate it with data. 
+Then we create a new database `salon24` and populate it with data.  `[filename]` stands for the name of .sql file with database dump.
 
 ```
-sudo -u postgres createdb -O sna_user socialdata
-psql -U sna_user socialdata < [filename]
+sudo -u postgres createdb -O sna_user salon24
+psql -U sna_user salon24 < [filename]
 ```
 
 Now you can use database management software (for example DataGrip) to connect to the database using user-password authentication and execute queries.
