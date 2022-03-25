@@ -37,7 +37,7 @@ Now you can use database management software (for example DataGrip) to connect t
 `[filename]` stands for the name of a .backup file with database backup
 
 ```
-sudo -u postgres pg_restore -f [filename]
+sudo -u postgres pg_restore -d huffington < [filename]
 ```
 
 
