@@ -4,7 +4,7 @@ BSc thesis. Authors: Gabriel Kępka, Piotr Makarewicz
 
 ## Configuration (Ubuntu)
 
-### PostgreSQL database
+### PostgreSQL database - Salon24 data import
 
 PostgreSQL is added to Ubuntu by default, so all we need to do is import the data from an SQL file. `[filename]` stands for the name of .sql file with database dump. First we need to create new `sna_user` role with `LOGIN` attribute, which will be an owner of database.
 
@@ -29,7 +29,6 @@ Then we create a new database `socialdata` and populate it with data.
 sudo -u postgres createdb -O sna_user socialdata
 psql -U sna_user socialdata < [filename]
 ```
-Every user using `socialdata` database must be granted the `sna_user` role.
 
 Now you can use database management software (for example DataGrip) to connect to the database using user-password authentication and execute queries.
 
