@@ -85,3 +85,13 @@ sudo mv postgresql-42.3.3.jar /var/lib/neo4j/plugins/
 ```
  
 Tutorial on how to use APOC library is available [here](https://www.youtube.com/watch?v=e8UfOHJngQA&list=PL9Hl4pk2FsvXEww23lDX_owoKoqqBQpdq&index=5).
+
+## Datasets
+
+### Salon24 (PostgreSQL)
+
+![Salon24 schema](/README_files/salon24_schema.png)
+
+### Huffington Post (PostgreSQL)
+
+![Huffington Post schema](/README_files/huffington_schema.png)
