@@ -53,16 +53,16 @@ public class Loader implements AutoCloseable {
         }
     }
 
-    @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
-    private String buildApocCall(String tableName, String nodeName) {// String.format
-        StringBuilder sb = new StringBuilder("CALL apoc.load.jdbc(\"jdbc:postgresql://");
-        sb.append(postgresHost + "/" + postgresDB + "?user=" + postgresUser).
-                append("&password=" + postgresPassword +"\"," + "\"" + tableName +
-                        "\") YIELD row WITH row LIMIT 200 ").
-                append("MERGE (n:" + nodeName + "{");
-        try (SchemaLoader loader = new SchemaLoader(postgresHost, postgresDB, postgresUser, postgresPassword)){
+    // labels, relationship types and property keys cannot be parametrized
+    private String buildApocCall(String tableName, String nodeName) {
+        String call = """
+                CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s")
+                YIELD row WITH row LIMIT 200 MERGE (n:%s{
+                """.formatted(postgresHost, postgresDB, postgresUser, postgresPassword, tableName, nodeName);
+        StringBuilder sb = new StringBuilder(call);
+        try (SchemaLoader loader = new SchemaLoader(postgresHost, postgresDB, postgresUser, postgresPassword)) {
             for (String column : loader.getTableColumnNames(tableName)) {
-                sb.append(column + ":coalesce(row." + column + ", 'NULL'),");
+                sb.append(String.format("%s:coalesce(row.%s, 'NULL'),", column, column));
             }
         } catch (Exception e) {
             e.printStackTrace();

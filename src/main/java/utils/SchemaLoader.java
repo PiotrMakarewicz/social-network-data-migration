@@ -18,15 +18,19 @@ public class SchemaLoader implements AutoCloseable {
     }
 
     public List<String> getTableColumnNames(String tableName) {
-        String sql = "SELECT column_name FROM information_schema.columns " +
-                "WHERE table_schema = 'public' AND table_name = '" + tableName + "' " +
-                "ORDER BY ordinal_position;";
+        String sql = """
+                SELECT column_name FROM information_schema.columns  
+                WHERE table_schema = 'public' AND table_name = ?
+                ORDER BY ordinal_position
+                """;
         List<String> columns = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()){
+        try (PreparedStatement statement = connection.prepareStatement(sql)){
+            statement.setString(1, tableName);
+            ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 columns.add(rs.getString(1));
             }
+            rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
