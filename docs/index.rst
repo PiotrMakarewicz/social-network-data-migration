@@ -14,3 +14,4 @@ Contents:
 
    index
    configuration
+   datasets
