@@ -1,4 +1,4 @@
 
 =========================================================
-Main titles are written using equals signs over and under
+System for migrating social network data from heterogeneous sources to a graph database
 =========================================================
