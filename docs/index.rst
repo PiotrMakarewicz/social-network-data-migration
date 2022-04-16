@@ -11,7 +11,7 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
-   functional_requirements
+   functionalrequirements
    configuration
    datasets
    
