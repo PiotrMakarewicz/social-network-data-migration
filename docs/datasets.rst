@@ -15,7 +15,7 @@ The dataset containing both the source data and NLP analysis results makes for a
 Huffington Post (PostgreSQL)
 ----------------------------------------------------
 .. image:: https://github.com/PiotrMakarewicz/social-network-data-migration/blob/main/README_files/huffington_schema.png?raw=true
-
+ 
 
 DBLP (XML)
 -------------------------------------------------
