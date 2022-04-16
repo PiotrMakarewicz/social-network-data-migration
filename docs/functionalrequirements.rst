@@ -50,11 +50,11 @@ Kryteria akceptacji:
     - typu krawędzi dla tabeli łącznikowej
     - atrybutu krawędzi dla kolumny tabeli łącznikowej
 
-A3. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
+A5. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest plik XML z grafem w postaci listy krawędzi
- * użytkonik może wybrać w pliku jeden z dostępnych schematów bazy grafowej
+ * użytkownik może wybrać w pliku jeden z dostępnych schematów bazy grafowej
  * użytkownik może ustalić w pliku mapowanie między tagiem XML a:
         - typem wierzchołka
         - atrybutem wierzchołka
@@ -62,7 +62,7 @@ Kryteria akceptacji:
         - atrybutem krawędzi
  * użytkownik może ustalić w pliku, że określone tagi XML nie będą importowane lub są tagami zewnętrznymi dla właściwych danych
 
-A4. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
+A6. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową
