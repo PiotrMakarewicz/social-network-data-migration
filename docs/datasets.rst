@@ -2,7 +2,7 @@ Datasets
 ==============
 
 Salon24 (PostgreSQL)
------------------------------------------------------
+----------------------------------------------------
 
 .. image:: https://github.com/PiotrMakarewicz/social-network-data-migration/blob/main/README_files/salon24_schema.png?raw=true
 
@@ -13,5 +13,13 @@ NLP analysis was performed in two directions. First of them was evaluating the s
 The dataset containing both the source data and NLP analysis results makes for a great resource for testing the use case in which the user decides which tables and columns they choose for the migration. We may assume that the user wishes to keep only the source data, therefore discarding the analysis results.
 
 Huffington Post (PostgreSQL)
------------------------------------------------------
+----------------------------------------------------
 .. image:: https://github.com/PiotrMakarewicz/social-network-data-migration/blob/main/README_files/huffington_schema.png?raw=true
+
+
+DBLP (XML)
+-------------------------------------------------
+
+The dataset contains the collaboration graph of authors from DBLP computer science bibliography. An edge between two authors represents a common publication and is annotated with its publishment date. The source files can be downloaded in the XML format from the `KONECT Project <http://konect.cc/networks/dblp_coauthor/>`_ website.
+
+There are 12497 authors and 49760 publications (edges) in the dataset. The underlying graph representation is an edge list, contrary to the other datasets we use. This introduces another use case to be adressed by our application. 
