@@ -74,22 +74,49 @@ Kryteria akceptacji:
     - typu atrybutu krawędzi dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego krawędzi
     - typu atrybutu wierzchołka dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego wierzchołkowi
 
-A7. Zawężenie przedziału czasowego przy imporcie danych
+A7. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV/TSV a schematem docelowym
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kryteria akceptacji:
+ * ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest plik CSV/TSV z grafem w postaci listy krawędzi
+ * użytkownik może wybrać w pliku jeden z dostępnych schematów bazy grafowej
+ * aplikacja pozwala na wczytywanie zarówno plików CSV/TSV z etykietami kolumn, jak i bez
+ * użytkownik może ustalić w pliku mapowanie między kolumną a:
+        - typem wierzchołka
+        - atrybutem wierzchołka
+        - atrybutem krawędzi
+ * użytkownik może ustalić w pliku, że określone kolumny nie będą importowane
+
+A8. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV/TSV a schematem docelowym
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kryteria akceptacji:
+ * użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową
+ * aplikacja umożliwia użytkownikowi ustalenie, że określone kolumny nie będą importowane
+ * aplikacja podpowiada użytkownikowi i umożliwia wybór dostępnego:
+    - schematu docelowej bazy grafowej
+    - typu wierzchołka dla odpowiedniej kolumny
+    - typu atrybutu krawędzi dla odpowiedniej kolumny
+    - typu atrybutu wierzchołka dla odpowiedniej kolumny
+
+A9. Zawężenie przedziału czasowego przy imporcie danych
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * aplikacja umożliwia użytkownikowi filtrowanie importowanych danych po jednym lub więcej atrybutach reprezentujących datę i czas
  * aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla importowanych danych
 
-A8. Rozszerzenie istniejącego grafu
+A10. Rozszerzenie istniejącego grafu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * aplikacja pozwala na import nowych danych do już istniejącego grafu
 
-A9. Miary podobieństwa węzłów i krawędzi oraz scalanie grafu wejściowego i docelowego
+A11. Miary podobieństwa węzłów i krawędzi
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
- * aplikacja rozpoznaje, gdy dane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy:
-        - aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami i między odpowiednimi krawędziami
+ * aplikacja rozpoznaje, gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami i między odpowiednimi krawędziami
+ 
+A12. Scalanie grafu wejściowego i docelowego
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kryteria akceptacji:
+ * gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej:
         - aplikacja pozwala użytkownikowi zdecydować, powyżej jakiej wartości miary podobieństwa scalić odpowiednie węzły i krawędzie, a poniżej której uznawać je za osobne węzły i krawędzie
         - w przypadku konfliktu wartości między atrybutami scalanych węzłów i krawędzi aplikacja pozwala użytkownikowi wybrać czy woli zachować dane źródłowe czy docelowe
 
@@ -108,7 +135,19 @@ Kryteria akceptacji:
  * aplikacja umożliwia użytkownikowi wybór jednego z dostępnych algorytmów analizy sieci
  * aplikacja wykonuje algorytm SNA i zapisuje wyniki w tej samej bazie, co dane wejściowe lub w nowej bazie, w zależności od tego, co ustali użytkownik
 
-B3. Eksport do formatu JSON lub CSV
+B3. Dostępne algorytmy SNA
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kryteria akceptacji:
+ * aplikacja pozwala na uruchomienie następujących algorytmów / obliczenie następujących parametrów:
+    - Density
+    - Clustering coefficient
+    - Degree centrality
+    - Closeness centrality
+    - Betweenness centrality
+    - PageRank
+    - Degree distribution
+
+B4. Eksport do formatu JSON lub CSV
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kryteria akceptacji:
