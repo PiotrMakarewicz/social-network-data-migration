@@ -16,6 +16,12 @@ Huffington Post (PostgreSQL)
 ----------------------------------------------------
 .. image:: https://github.com/PiotrMakarewicz/social-network-data-migration/blob/main/README_files/huffington_schema.png?raw=true
 
+The dataset contains data from American news aggregator and blog site `HuffPost <https://www.huffpost.com/>`_. It contains data of authors, posts, comments, categories, tags and results of NLP analysis specyfying topic of posts and comments. Data consist of 964 580 authors, 105 categories, 468 820 posts, 18 940 014 comments and 1 542 307 tags. Posts and comments are time restricted to interval from 2005-12-09 to 2015-03-31.
+
+NLP analysis results are stored in tables ``topics``, ``post_topic``, ``comment_topic``, ``comment_topic_dziedziczone``, ``divergence``, ``topics_category`` i ``topics_topics_category``. Those tables descibe topics of posts and comments defined as sets of keywords which appear in them, ``divergence`` table describes probability of author bringing up some topic given day, tables ``topics_category`` and ``topics_topics_category`` ascribe one of 35 named categories (distinct from categories as defined in original data) to each topic. 
+
+The dataset containing both the source data and NLP analysis results makes for a great resource for testing the use case in which the user decides which tables and columns they choose for the migration. We may assume that the user wishes to keep only the source data, therefore discarding the analysis results.
+
 WOSN Facebook Wall Posts (TSV)
 -------------------------------------------------
 The dataset is a directed network of a small subset of posts to other user's wall on Facebook. The nodes are Facebook users, and each directed edge represents a post, linking a post author to the wall owner. Because users may write multiple posts on a wall, the network is a multigraph. There are also some self-loops in the network as users may post on their own walls. Data comes from a paper *B. Viswanath, A. Mislove, Meeyoung Cha and K. P. Gummadi "On the Evolution of User Interaction in Facebook"* presented at the WOSN 2009 conference. It contains information about 	46 952 users and 876 993 wall posts. Source: `https://socialnetworks.mpi-sws.org/data-wosn2009.html`
