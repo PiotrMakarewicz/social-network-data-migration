@@ -13,6 +13,7 @@ Contents:
    :maxdepth: 3
    
    functionalrequirements
+   graphalgorithms
    configuration
    datasets
    
