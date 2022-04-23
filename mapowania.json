@@ -1,0 +1,60 @@
+### mapowanie SQL
+
+{ 
+    "nodes": [
+        {
+            "sql_table_name": "authors",
+            "node_label": "Person",
+            "mapped_columns": {
+                "id": "id",
+                "bloglink": "blog_url",
+                "name": "name"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "edge_label": "IsAuthor",
+            "foreign_key": "comments.author_id"
+        },
+        {
+            "edge_label": "RefersTo",
+            "foreign_key": "comments.post_id",
+            "from": "comments",
+            "to": "posts"
+        },
+        {
+            "edge_label": "IsTaggedWith",
+            "join_table": "posts_tags"
+        }
+    ]
+}
+
+### MAPOWANIE CSV
+{
+    "nodes": [
+        {
+            "node_label": "Person",
+            "mapped_columns": {
+                "0": "id"  
+            }
+        },
+        {
+            "node_label": "Person",
+            "mapped_columns": {
+                "1": "id"  
+            }   
+        }
+    ]
+    "edges": [
+        {
+            "edge_label": "InteractedWith",
+            "from": "0",
+            "to": "1",
+            "mapped_columns": {
+                "2": "creation_date"  
+            }   
+        }
+    ]
+    
+}

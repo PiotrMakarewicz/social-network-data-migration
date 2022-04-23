@@ -1,0 +1,35 @@
+# Przykład mapowania dla Salon24
+
+### NODES
+
+authors -> Person
+    id # brak strzałki - zachowujemy nazwę kolumny
+    bloglink -> blog_url # strzałka - zmieniamy nazwę
+    name
+
+posts -> Post
+    id
+    content
+    date -> creation_date
+    "post" -> type
+    # niezapisane atrybuty oznaczają, że ich nie migrujemy
+
+comments -> Post
+    id
+    content
+    date -> creation_date
+    "comment" -> type
+
+tags -> Tag
+    id
+    name
+    
+### EDGES # (foreign keys)
+    
+IsAuthor: comments.author_id
+IsAuthor: posts.author_id
+RefersTo: comments.post_id [comments -> posts]
+
+### EDGES # (join tables)
+
+IsTaggedWith: posts_tags
