@@ -25,7 +25,10 @@
         },
         {
             "edge_label": "IsTaggedWith",
-            "join_table": "posts_tags"
+            "join_table": "posts_tags",
+            "mapped_columns": {
+                "timestamp": "timestamp"
+            }
         }
     ]
 }
