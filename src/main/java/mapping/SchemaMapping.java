@@ -6,7 +6,7 @@ import mapping.node.NodeMapping;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class SchemaMapping {
+public abstract class SchemaMapping {
     private final Collection<NodeMapping> nodeMappings = new HashSet<>();
     private final Collection<EdgeMapping> edgeMappings = new HashSet<>();
 

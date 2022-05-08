@@ -2,6 +2,7 @@ package mapping.loader;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import mapping.SQLSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.ForeignKeyMapping;
 import mapping.edge.JoinTableMapping;
@@ -22,7 +23,7 @@ public class SQLMappingLoader implements MappingLoader {
     }
 
     public SchemaMapping convertToSchemaMapping(JsonSchema jsonSchema){
-        SchemaMapping mapping = new SchemaMapping();
+        SQLSchemaMapping mapping = new SQLSchemaMapping();
 
         for (Node node: jsonSchema.getNodes()){
             if (node.getNodeLabel() == null || node.getSqlTableName() == null){
@@ -57,6 +58,8 @@ public class SQLMappingLoader implements MappingLoader {
                 mapping.addEdgeMapping(
                         new JoinTableMapping(
                                 edge.getEdgeLabel(),
+                                mapping.getNodeLabelForTableName(edge.getFrom()),
+                                mapping.getNodeLabelForTableName(edge.getTo()),
                                 edge.getFrom(),
                                 edge.getTo(),
                                 edge.getJoinTable(),
@@ -68,6 +71,8 @@ public class SQLMappingLoader implements MappingLoader {
                 mapping.addEdgeMapping(
                         new ForeignKeyMapping(
                                 edge.getEdgeLabel(),
+                                mapping.getNodeLabelForTableName(edge.getFrom()),
+                                mapping.getNodeLabelForTableName(edge.getTo()),
                                 edge.getFrom(),
                                 edge.getTo(),
                                 edge.getForeignKey()
