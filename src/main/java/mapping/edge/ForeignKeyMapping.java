@@ -11,4 +11,12 @@ public class ForeignKeyMapping extends SQLEdgeMapping {
     public String getForeignKey() {
         return foreignKey;
     }
+
+    public String getTableFromForeignKey() {
+        return this.foreignKey.split("\\.")[0];
+    }
+
+    public String getColumnFromForeignKey() {
+        return this.foreignKey.split("\\.")[1];
+    }
 }

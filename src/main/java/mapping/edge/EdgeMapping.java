@@ -14,4 +14,12 @@ public abstract class EdgeMapping {
     public String getEdgeLabel() {
         return edgeLabel;
     }
+
+    public String getFromNode() {
+        return fromNode;
+    }
+
+    public String getToNode() {
+        return toNode;
+    }
 }

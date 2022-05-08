@@ -2,7 +2,7 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
-import utils.SchemaLoader;
+import utils.SchemaMetaData;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -60,8 +60,8 @@ public class Loader implements AutoCloseable {
                 YIELD row WITH row LIMIT 200 MERGE (n:%s{
                 """.formatted(postgresHost, postgresDB, postgresUser, postgresPassword, tableName, nodeName);
         StringBuilder sb = new StringBuilder(call);
-        try (SchemaLoader loader = new SchemaLoader(postgresHost, postgresDB, postgresUser, postgresPassword)) {
-            for (String column : loader.getTableColumnNames(tableName)) {
+        try (SchemaMetaData loader = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword)) {
+            for (String column : loader.getColumnNames(tableName)) {
                 sb.append(String.format("%s:coalesce(row.%s, 'NULL'),", column, column));
             }
         } catch (Exception e) {
