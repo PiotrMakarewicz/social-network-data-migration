@@ -21,6 +21,16 @@ public class SchemaMetaData implements AutoCloseable {
             this.referencedColumnName = referencedColumnName;
             this.referencedTableName = referencedTableName;
         }
+
+        @Override
+        public String toString() {
+            return "ColumnInfo{" +
+                    "columnName='" + columnName + '\'' +
+                    ", tableName='" + tableName + '\'' +
+                    ", referencedColumnName='" + referencedColumnName + '\'' +
+                    ", referencedTableName='" + referencedTableName + '\'' +
+                    '}';
+        }
     }
 
     public SchemaMetaData(String postgresHost, String postgresDB, String postgresUser, String postgresPassword) {
@@ -36,7 +46,7 @@ public class SchemaMetaData implements AutoCloseable {
     public String getPrimaryKeyColumn(String tableName) {
         String columnName = null;
         String sql = """
-                SELECT kcu.column_name FROM information.schema.key_column_usage kcu
+                SELECT kcu.column_name FROM information_schema.key_column_usage kcu
                 INNER JOIN information_schema.table_constraints tc
                 ON kcu.constraint_name = tc.constraint_name
                 AND kcu.table_name = tc.table_name
@@ -65,7 +75,7 @@ public class SchemaMetaData implements AutoCloseable {
                 ON tc.table_schema = kcu_from.table_schema
                 AND tc.table_name = kcu_from.table_name
                 AND tc.constraint_name = kcu_from.constraint_name
-                AND tc.constraint_name = 'FOREIGN KEY'
+                AND tc.constraint_type = 'FOREIGN KEY'
                 AND tc.table_name = ?
                 INNER JOIN information_schema.referential_constraints rc
                 ON kcu_from.constraint_name = rc.constraint_name
