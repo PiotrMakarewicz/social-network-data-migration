@@ -11,6 +11,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import utils.SchemaMetaData;
+import utils.SchemaMetaData.ColumnInfo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,8 +56,9 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
     private void createNode(NodeMapping nodeMapping) {
         SQLNodeMapping sqlNodeMapping = (SQLNodeMapping) nodeMapping;
         String call = """
-                CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s")
-                YIELD row WITH row MERGE (n:%s{
+                CALL apoc.periodic.iterate(
+                'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
+                "MERGE (n:%s{
                 """.formatted(
                     postgresHost,
                     postgresDB,
@@ -70,7 +72,10 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
             callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
         });
         callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
-        callBuilder.append("});");
+        callBuilder.append("""
+                })",
+                {batchSize:10000, parallel:true}) YIELD batches RETURN batches
+                """);
 
         try (Session session = neo4jDriver.session()){
             session.writeTransaction(tx -> {
@@ -90,9 +95,9 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
 
     private void createEdgeFromForeignKeyMapping(ForeignKeyMapping edgeMapping) {
         String call = """
-                CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s")
-                YIELD row WITH row
-                MATCH
+                CALL apoc.periodic.iterate(
+                'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
+                "MATCH
                     (a:%s),
                     (b:%s)
                 WHERE
@@ -118,6 +123,9 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                     ));
         }
         callBuilder.append(" CREATE (a)-[r:%s]->(b)".formatted(edgeMapping.getEdgeLabel()));
+        callBuilder.append("""
+                ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
+                """);
 
         try (Session session = neo4jDriver.session()){
             session.writeTransaction(tx -> {
@@ -129,9 +137,9 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
 
     private void createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
         String call = """
-                CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s")
-                YIELD row WITH row
-                MATCH
+                CALL apoc.periodic.iterate(
+                'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
+                "MATCH
                     (a:%s),
                     (b:%s)
                 WHERE
@@ -145,35 +153,30 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 edgeMapping.getToNode()
         );
         StringBuilder callBuilder = new StringBuilder(call);
-        List<SchemaMetaData.ColumnInfo> foreignKeys = schemaMetaData.getForeignKeys(edgeMapping.getJoinTable());
-        String fromTableForeignKey = foreignKeys
-                .stream()
-                .filter(columnInfo -> columnInfo.referencedTableName.equals(edgeMapping.getFromTable()))
-                .map(columnInfo -> columnInfo.columnName)
-                .findFirst()
-                .get();
-        String toTableForeignKey = foreignKeys
-                .stream()
-                .filter(columnInfo -> columnInfo.referencedTableName.equals(edgeMapping.getToTable()))
-                .map(columnInfo -> columnInfo.columnName)
-                .findFirst()
-                .get();
+
+        String fromTableForeignKey = schemaMetaData.getForeignKeyColumnName(
+                edgeMapping.getJoinTable(),
+                edgeMapping.getFromTable()
+        );
+        String toTableForeignKey = schemaMetaData.getForeignKeyColumnName(
+                edgeMapping.getJoinTable(),
+                edgeMapping.getToTable()
+        );
+
         callBuilder.append(" a.id = row.%s and b.id = row.%s".formatted(
                 fromTableForeignKey,
                 toTableForeignKey
         ));
-        callBuilder.append(" CREATE (a)-[r:%s".formatted(edgeMapping.getEdgeLabel()));
-        // TODO sprawdzić, czy można w poleceniu umieścić puste nawiasy klamrowe
-        if (edgeMapping.getMappedColumns().size() != 0)
-            callBuilder.append(" {");
+        callBuilder.append(" CREATE (a)-[r:%s{".formatted(edgeMapping.getEdgeLabel()));
         edgeMapping.getMappedColumns().forEach((column, attribute) -> {
             callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
         });
-        if (edgeMapping.getMappedColumns().size() != 0) {
+        if (edgeMapping.getMappedColumns().size() != 0)
             callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
-            callBuilder.append("}");
-        }
-        callBuilder.append("]->(b)");
+        callBuilder.append("}]->(b)");
+        callBuilder.append("""
+                ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
+                """);
 
         try (Session session = neo4jDriver.session()){
             session.writeTransaction(tx -> {

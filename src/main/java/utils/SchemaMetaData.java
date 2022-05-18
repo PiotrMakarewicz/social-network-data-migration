@@ -2,7 +2,9 @@ package utils;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class SchemaMetaData implements AutoCloseable {
     private final Connection connection;
@@ -20,6 +22,14 @@ public class SchemaMetaData implements AutoCloseable {
             this.tableName = tableName;
             this.referencedColumnName = referencedColumnName;
             this.referencedTableName = referencedTableName;
+        }
+
+        public static Optional<String> getForeignKeyReferencingTable(Collection<ColumnInfo> columnData,String referencedTableName) {
+            return columnData
+                    .stream()
+                    .filter(columnInfo -> columnInfo.referencedTableName.equals(referencedTableName))
+                    .map(columnInfo -> columnInfo.columnName)
+                    .findFirst();
         }
 
         @Override
@@ -41,6 +51,24 @@ public class SchemaMetaData implements AutoCloseable {
             throw new RuntimeException("Couldn't establish connection with database");
         }
 
+    }
+
+    /**
+     * Returns name of column in <code>tableName</code> referencing primary
+     * key of <code>referencedTableName</code>. Current implementation assumes primary key
+     * of <code>referencedTableName</code> is a single column.
+     *
+     * @param  tableName  name of table with foreign key column
+     * @param  referencedTableName name of table referenced by foreign key column in <code>tableName</code>
+     * @return      name of foreign key column
+     */
+    public String getForeignKeyColumnName(String tableName, String referencedTableName) {
+        Collection<ColumnInfo> foreignKeys = this.getForeignKeys(tableName);
+        return ColumnInfo.getForeignKeyReferencingTable(foreignKeys, referencedTableName)
+                .orElseThrow(() -> new RuntimeException(
+                        "Table %s has no foreign key column referencing table %s"
+                                .formatted(tableName, referencedTableName)
+                ));
     }
 
     public String getPrimaryKeyColumn(String tableName) {
