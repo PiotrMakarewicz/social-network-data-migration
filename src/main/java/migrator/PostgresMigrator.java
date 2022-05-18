@@ -56,7 +56,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         String call = """
                 CALL apoc.periodic.iterate(
                 'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
-                "MERGE (n:%s{
+                "CREATE (n:%s{
                 """.formatted(
                     postgresHost,
                     postgresDB,
@@ -76,12 +76,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 {batchSize:10000, parallel:true}) YIELD batches RETURN batches
                 """);
 
-        try (Session session = neo4jDriver.session()){
-            session.writeTransaction(tx -> {
-                tx.run(callBuilder.toString());
-                return null;
-            });
-        }
+        this.execute(callBuilder.toString());
     }
 
     private void createEdge(EdgeMapping edgeMapping) {
@@ -130,12 +125,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
                 """);
 
-        try (Session session = neo4jDriver.session()){
-            session.writeTransaction(tx -> {
-                tx.run(callBuilder.toString());
-                return null;
-            });
-        }
+        this.execute(callBuilder.toString());
     }
 
     private void createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
@@ -185,12 +175,20 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
                 """);
 
+        this.execute(callBuilder.toString());
+    }
+
+    private void execute(String query) {
+        System.out.println(query);
+        long start = System.currentTimeMillis();
         try (Session session = neo4jDriver.session()){
             session.writeTransaction(tx -> {
-                tx.run(callBuilder.toString());
+                tx.run(query);
                 return null;
             });
         }
+        long end = System.currentTimeMillis();
+        System.out.println("Time taken: %s s".formatted((end - start) / 1000));
     }
 
     @Override
