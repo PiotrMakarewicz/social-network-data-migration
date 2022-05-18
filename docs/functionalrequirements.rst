@@ -16,15 +16,7 @@ Kryteria akceptacji:
         - hasło
         - nazwa bazy
 
-A2. Zunifikowane schematy bazy grafowej
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Kryteria akceptacji:
-    * ustalono kilka zunifikowanych schematów bazy grafowej dla heterogenicznych źródeł danych
-    * schemat zawiera:
-        - typy wierzchołków razem z dostępnymi atrybutami
-        - typy krawędzi między wierzchołkami razem z dostępnymi atrybutami
-
-A3. Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym
+A2. Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest baza relacyjna SQL
@@ -37,7 +29,7 @@ Kryteria akceptacji:
         - kolumnami tabel łącznikowych a atrybutami krawędzi
  * użytkownik może ustalić w pliku, że określone tabele lub kolumny nie będą importowane
 
-A4. Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym
+A3. Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową
@@ -50,7 +42,7 @@ Kryteria akceptacji:
     - typu krawędzi dla tabeli łącznikowej
     - atrybutu krawędzi dla kolumny tabeli łącznikowej
 
-A5. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
+A4. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest plik XML z grafem w postaci listy krawędzi
@@ -62,7 +54,7 @@ Kryteria akceptacji:
         - atrybutem krawędzi
  * użytkownik może ustalić w pliku, że określone tagi XML nie będą importowane lub są tagami zewnętrznymi dla właściwych danych
 
-A6. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
+A5. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową
@@ -74,7 +66,7 @@ Kryteria akceptacji:
     - typu atrybutu krawędzi dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego krawędzi
     - typu atrybutu wierzchołka dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego wierzchołkowi
 
-A7. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV/TSV a schematem docelowym
+A6. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV/TSV a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest plik CSV/TSV z grafem w postaci listy krawędzi
@@ -86,7 +78,7 @@ Kryteria akceptacji:
         - atrybutem krawędzi
  * użytkownik może ustalić w pliku, że określone kolumny nie będą importowane
 
-A8. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV/TSV a schematem docelowym
+A7. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV/TSV a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową
@@ -97,28 +89,29 @@ Kryteria akceptacji:
     - typu atrybutu krawędzi dla odpowiedniej kolumny
     - typu atrybutu wierzchołka dla odpowiedniej kolumny
 
-A9. Zawężenie przedziału czasowego przy imporcie danych
+A8. Zawężenie przedziału czasowego przy imporcie danych
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * aplikacja umożliwia użytkownikowi filtrowanie importowanych danych po jednym lub więcej atrybutach reprezentujących datę i czas
  * aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla importowanych danych
 
-A10. Rozszerzenie istniejącego grafu
+A9. Rozszerzenie istniejącego grafu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * aplikacja pozwala na import nowych danych do już istniejącego grafu
 
-A11. Miary podobieństwa węzłów i krawędzi
+A10. Miary podobieństwa węzłów
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
- * aplikacja rozpoznaje, gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami i między odpowiednimi krawędziami
+ * aplikacja rozpoznaje, gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami
+ * miara podobieństwa węzłów jest wyznaczana na podstawie wybranych przez użytkownika atrybutów węzłów
  
-A12. Scalanie grafu wejściowego i docelowego
+A11. Scalanie grafu wejściowego i docelowego
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
  * gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej:
-        - aplikacja pozwala użytkownikowi zdecydować, powyżej jakiej wartości miary podobieństwa scalić odpowiednie węzły i krawędzie, a poniżej której uznawać je za osobne węzły i krawędzie
-        - w przypadku konfliktu wartości między atrybutami scalanych węzłów i krawędzi aplikacja pozwala użytkownikowi wybrać czy woli zachować dane źródłowe czy docelowe
+        - aplikacja pozwala użytkownikowi zdecydować, powyżej jakiej wartości miary podobieństwa scalić odpowiednie węzły, a poniżej której uznawać je za osobne
+        - w przypadku konfliktu wartości między atrybutami scalanych węzłów aplikacja pozwala użytkownikowi wybrać czy woli zachować wartości źródłowe czy docelowe
 
 B. Analiza sieci
 ----------------
