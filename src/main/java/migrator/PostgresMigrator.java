@@ -11,14 +11,12 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import utils.SchemaMetaData;
-import utils.SchemaMetaData.ColumnInfo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Properties;
 
 public class PostgresMigrator implements Migrator, AutoCloseable {
@@ -68,6 +66,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                     sqlNodeMapping.getNodeLabel()
                 );
         StringBuilder callBuilder = new StringBuilder(call);
+        callBuilder.append("__table_name:'%s',".formatted(sqlNodeMapping.getSqlTableName()));
         sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
             callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
         });
@@ -122,6 +121,10 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                     schemaMetaData.getPrimaryKeyColumn(edgeMapping.getToTable())
                     ));
         }
+        callBuilder.append(" AND a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+                edgeMapping.getFromTable(),
+                edgeMapping.getToTable()
+        ));
         callBuilder.append(" CREATE (a)-[r:%s]->(b)".formatted(edgeMapping.getEdgeLabel()));
         callBuilder.append("""
                 ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
