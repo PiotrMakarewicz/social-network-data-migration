@@ -170,6 +170,10 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 fromTableForeignKey,
                 toTableForeignKey
         ));
+        callBuilder.append(" AND a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+                edgeMapping.getFromTable(),
+                edgeMapping.getToTable()
+        ));
         callBuilder.append(" CREATE (a)-[r:%s{".formatted(edgeMapping.getEdgeLabel()));
         edgeMapping.getMappedColumns().forEach((column, attribute) -> {
             callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
