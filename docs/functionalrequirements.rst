@@ -1,6 +1,12 @@
 Specyfikacja funkcjonalna
 ===========================
 
+System do migracji danych dotyczących sieci społecznych z heterogenicznych źródeł do grafowej bazy danych
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+Autorzy: Gabriel Kępka, Piotr Makarewicz
+++++++++++++++++++++++++++++++++++++++++++++++++
+
 A. Migracja danych
 ------------------
 
