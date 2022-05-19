@@ -56,6 +56,9 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
 
     private void createNode(NodeMapping nodeMapping) {
         SQLNodeMapping sqlNodeMapping = (SQLNodeMapping) nodeMapping;
+
+        this.createIndex(sqlNodeMapping);
+
         String call = """
                 CALL apoc.periodic.iterate(
                 'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
@@ -235,6 +238,25 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         }
         long end = System.currentTimeMillis();
         System.out.println("Time taken: %s s".formatted((end - start) / 1000));
+    }
+
+    private void createIndex(SQLNodeMapping nodeMapping) {
+        String nodeLabel = nodeMapping.getNodeLabel();
+        String tableName = nodeMapping.getSqlTableName();
+        List<String> primaryKeyColumns = schemaMetaData
+                .getPrimaryKeyColumns(tableName)
+                .stream()
+                .map(column -> column.columnName)
+                .toList();
+
+        String call = "CREATE INDEX %s IF NOT EXISTS FOR (n:%s) ON ("
+                .formatted((nodeLabel + "_" + tableName), nodeLabel);
+        StringBuilder callBuilder = new StringBuilder(call);
+        primaryKeyColumns.forEach(column -> {
+            callBuilder.append("n.__%s,".formatted(column));
+        });
+        callBuilder.append("n.__table_name)");
+        this.execute(callBuilder.toString());
     }
 
     @Override
