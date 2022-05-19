@@ -67,7 +67,7 @@ Start systemd service:
 
 Neo4j database - in a docker container 
 --------------------------------------
-Instead of installing Neo4j locally, you may run it in a docker container, providing necessary ports:
+Instead of installing Neo4j locally, you may run it in a docker container
 ::
 
   docker run \
