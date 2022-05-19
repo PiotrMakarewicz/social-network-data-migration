@@ -11,12 +11,15 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import utils.SchemaMetaData;
+import utils.SchemaMetaData.FKColumnInfo;
+import utils.SchemaMetaData.ColumnInfo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
 
 public class PostgresMigrator implements Migrator, AutoCloseable {
@@ -70,6 +73,15 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
             callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
         });
+
+        List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(sqlNodeMapping.getSqlTableName());
+        primaryKeyColumns.forEach(column -> {
+            callBuilder.append("__%s:row.%s,".formatted(
+                    column.columnName,
+                    column.columnName
+            ));
+        });
+
         callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
         callBuilder.append("""
                 })",
@@ -100,23 +112,47 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                     postgresDB,
                     postgresUser,
                     postgresPassword,
-                    edgeMapping.getTableFromForeignKey(),
+                    edgeMapping.getForeignKeyTable(),
                     edgeMapping.getFromNode(),
                     edgeMapping.getToNode()
                 );
         StringBuilder callBuilder = new StringBuilder(call);
-        if (edgeMapping.getTableFromForeignKey().equals(edgeMapping.getFromTable())) {
-            callBuilder.append(" a.id = row.%s AND b.id = row.%s".formatted(
-                    schemaMetaData.getPrimaryKeyColumn(edgeMapping.getFromTable()),
-                    edgeMapping.getColumnFromForeignKey()
-                    ));
-        } else {
-            callBuilder.append(" a.id = row.%s AND b.id = row.%s".formatted(
-                    edgeMapping.getColumnFromForeignKey(),
-                    schemaMetaData.getPrimaryKeyColumn(edgeMapping.getToTable())
-                    ));
+
+        List<FKColumnInfo> foreignKeys = schemaMetaData.getForeignKeyColumnsForTable(
+                edgeMapping.getForeignKeyTable(),
+                edgeMapping.getToTable()
+        );
+        for (FKColumnInfo foreignKey : foreignKeys){
+            if (foreignKey.tableName().equals(edgeMapping.getFromTable())) {
+                callBuilder.append(" b.__%s = row.%s AND".formatted(
+                        foreignKey.referencedColumnName(),
+                        foreignKey.columnName()
+                ));
+            } else {
+                callBuilder.append(" a.__%s = row.%s AND".formatted(
+                        foreignKey.referencedColumnName(),
+                        foreignKey.columnName()
+                ));
+            }
         }
-        callBuilder.append(" AND a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+
+        List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(edgeMapping.getForeignKeyTable());
+        for (ColumnInfo primaryKeyColumn : primaryKeyColumns) {
+            if (edgeMapping.getForeignKeyTable().equals(edgeMapping.getFromTable())) {
+                callBuilder.append(" a.__%s = row.%s AND".formatted(
+                        primaryKeyColumn.columnName,
+                        primaryKeyColumn.columnName
+                ));
+            } else {
+                callBuilder.append(" b.__%s = row.%s AND".formatted(
+                        primaryKeyColumn.columnName,
+                        primaryKeyColumn.columnName
+                ));
+            }
+        }
+
+
+        callBuilder.append(" a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
                 edgeMapping.getFromTable(),
                 edgeMapping.getToTable()
         ));
@@ -147,20 +183,30 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         );
         StringBuilder callBuilder = new StringBuilder(call);
 
-        String fromTableForeignKey = schemaMetaData.getForeignKeyColumnName(
+        List<FKColumnInfo> fromTableForeignKeys = schemaMetaData.getForeignKeyColumnsForTable(
                 edgeMapping.getJoinTable(),
                 edgeMapping.getFromTable()
         );
-        String toTableForeignKey = schemaMetaData.getForeignKeyColumnName(
+        List<FKColumnInfo> toTableForeignKeys = schemaMetaData.getForeignKeyColumnsForTable(
                 edgeMapping.getJoinTable(),
                 edgeMapping.getToTable()
         );
 
-        callBuilder.append(" a.id = row.%s and b.id = row.%s".formatted(
-                fromTableForeignKey,
-                toTableForeignKey
-        ));
-        callBuilder.append(" AND a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+        fromTableForeignKeys.forEach(foreignKey -> {
+            callBuilder.append(" a.__%s = row.%s AND".formatted(
+                    foreignKey.referencedColumnName(),
+                    foreignKey.columnName()
+            ));
+        });
+
+        toTableForeignKeys.forEach(foreignKey -> {
+            callBuilder.append(" b.__%s = row.%s AND".formatted(
+                    foreignKey.referencedColumnName(),
+                    foreignKey.columnName()
+            ));
+        });
+
+        callBuilder.append(" a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
                 edgeMapping.getFromTable(),
                 edgeMapping.getToTable()
         ));

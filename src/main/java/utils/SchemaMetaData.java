@@ -12,24 +12,10 @@ public class SchemaMetaData implements AutoCloseable {
     public class ColumnInfo {
         public String columnName;
         public String tableName;
-        public String referencedColumnName;
-        public String referencedTableName;
-        public ColumnInfo(String columnName,
-                          String tableName,
-                          String referencedColumnName,
-                          String referencedTableName) {
+
+        public ColumnInfo(String columnName, String tableName) {
             this.columnName = columnName;
             this.tableName = tableName;
-            this.referencedColumnName = referencedColumnName;
-            this.referencedTableName = referencedTableName;
-        }
-
-        public static Optional<String> getForeignKeyReferencingTable(Collection<ColumnInfo> columnData,String referencedTableName) {
-            return columnData
-                    .stream()
-                    .filter(columnInfo -> columnInfo.referencedTableName.equals(referencedTableName))
-                    .map(columnInfo -> columnInfo.columnName)
-                    .findFirst();
         }
 
         @Override
@@ -37,9 +23,48 @@ public class SchemaMetaData implements AutoCloseable {
             return "ColumnInfo{" +
                     "columnName='" + columnName + '\'' +
                     ", tableName='" + tableName + '\'' +
-                    ", referencedColumnName='" + referencedColumnName + '\'' +
-                    ", referencedTableName='" + referencedTableName + '\'' +
                     '}';
+        }
+    }
+
+    public class FKColumnInfo {
+        public ColumnInfo foreignKeyColumn;
+        public ColumnInfo referencedColumn;
+        public FKColumnInfo(String columnName,
+                          String tableName,
+                          String referencedColumnName,
+                          String referencedTableName) {
+            this.foreignKeyColumn = new ColumnInfo(
+                    columnName,
+                    tableName
+            );
+            this.referencedColumn = new ColumnInfo(
+                    referencedColumnName,
+                    referencedTableName
+            );
+        }
+
+        @Override
+        public String toString() {
+            return "FKColumnInfo{" +
+                    "foreignKeyColumn=" + foreignKeyColumn +
+                    ", referencedColumn=" + referencedColumn +
+                    '}';
+        }
+
+        public String columnName() {
+            return foreignKeyColumn.columnName;
+        }
+
+        public String tableName() {
+            return foreignKeyColumn.tableName;
+        }
+
+        public String referencedColumnName() {
+            return referencedColumn.columnName;
+        }
+        public String referencedTableName() {
+            return referencedColumn.tableName;
         }
     }
 
@@ -54,27 +79,27 @@ public class SchemaMetaData implements AutoCloseable {
     }
 
     /**
-     * Returns name of column in <code>tableName</code> referencing primary
-     * key of <code>referencedTableName</code>. Current implementation assumes primary key
-     * of <code>referencedTableName</code> is a single column.
+     * Returns list of FKColumnInfo containing information about columns
+     * in <code>tableName</code> referencing primary
+     * keys of <code>referencedTableName</code>.
      *
      * @param  tableName  name of table with foreign key column
      * @param  referencedTableName name of table referenced by foreign key column in <code>tableName</code>
-     * @return      name of foreign key column
+     * @return Returns list of FKColumnInfo containing information about columns
+     *       in <code>tableName</code>
      */
-    public String getForeignKeyColumnName(String tableName, String referencedTableName) {
-        Collection<ColumnInfo> foreignKeys = this.getForeignKeys(tableName);
-        return ColumnInfo.getForeignKeyReferencingTable(foreignKeys, referencedTableName)
-                .orElseThrow(() -> new RuntimeException(
-                        "Table %s has no foreign key column referencing table %s"
-                                .formatted(tableName, referencedTableName)
-                ));
+    public List<FKColumnInfo> getForeignKeyColumnsForTable(String tableName, String referencedTableName) {
+        List<FKColumnInfo> foreignKeys = this.getForeignKeyColumns(tableName);
+        return foreignKeys
+                .stream()
+                .filter(fkColumnInfo -> fkColumnInfo.referencedTableName().equals(referencedTableName))
+                .toList();
     }
 
-    public String getPrimaryKeyColumn(String tableName) {
-        String columnName = null;
+    public List<ColumnInfo> getPrimaryKeyColumns(String tableName) {
+        List<ColumnInfo> primaryKeyColumns = new ArrayList<>();
         String sql = """
-                SELECT kcu.column_name FROM information_schema.key_column_usage kcu
+                SELECT kcu.column_name, kcu.table_name FROM information_schema.key_column_usage kcu
                 INNER JOIN information_schema.table_constraints tc
                 ON kcu.constraint_name = tc.constraint_name
                 AND kcu.table_name = tc.table_name
@@ -85,17 +110,21 @@ public class SchemaMetaData implements AutoCloseable {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setObject(1, tableName);
             ResultSet rs = ps.executeQuery();
-            rs.next();
-            columnName = rs.getObject(1, String.class);
+            while(rs.next()) {
+                primaryKeyColumns.add(new ColumnInfo(
+                        rs.getString(1),
+                        rs.getString(2)
+                ));
+            }
             rs.close();
         } catch (SQLException e) {
             throw new RuntimeException("Couldn't get primary key column for table " + tableName + ": " + e.getMessage());
         }
-        return columnName;
+        return primaryKeyColumns;
     }
 
-    public List<ColumnInfo> getForeignKeys(String tableName) {
-        List<ColumnInfo> result = new ArrayList<>();
+    public List<FKColumnInfo> getForeignKeyColumns(String tableName) {
+        List<FKColumnInfo> result = new ArrayList<>();
         String sql = """
                 SELECT kcu_from.column_name, kcu_from.table_name, kcu_to.column_name, kcu_to.table_name
                 FROM information_schema.table_constraints tc
@@ -117,7 +146,7 @@ public class SchemaMetaData implements AutoCloseable {
             ps.setObject(1, tableName);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                ColumnInfo columnInfo = new ColumnInfo(
+                FKColumnInfo columnInfo = new FKColumnInfo(
                         rs.getString(1),
                         rs.getString(2),
                         rs.getString(3),
