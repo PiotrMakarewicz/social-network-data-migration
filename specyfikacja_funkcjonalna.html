@@ -1,0 +1,384 @@
+ <div itemprop="articleBody">
+             
+  <section id="specyfikacja-funkcjonalna">
+<h1>Specyfikacja funkcjonalna<a class="headerlink" href="#specyfikacja-funkcjonalna" title="Permalink to this headline"></a></h1>
+<section id="system-do-migracji-danych-dotyczacych-sieci-spolecznych-z-heterogenicznych-zrodel-do-grafowej-bazy-danych">
+<h2>System do migracji danych dotyczących sieci społecznych z heterogenicznych źródeł do grafowej bazy danych<a class="headerlink" href="#system-do-migracji-danych-dotyczacych-sieci-spolecznych-z-heterogenicznych-zrodel-do-grafowej-bazy-danych" title="Permalink to this headline"></a></h2>
+</section>
+<section id="autorzy-gabriel-kepka-piotr-makarewicz">
+<h2>Autorzy: Gabriel Kępka, Piotr Makarewicz<a class="headerlink" href="#autorzy-gabriel-kepka-piotr-makarewicz" title="Permalink to this headline"></a></h2>
+<section id="a-migracja-danych">
+<h3>A. Migracja danych<a class="headerlink" href="#a-migracja-danych" title="Permalink to this headline"></a></h3>
+<section id="a1-aplikacja-konsolowa-do-migracji-z-bazy-postgresql">
+<h4>A1. Aplikacja konsolowa do migracji z bazy PostgreSQL<a class="headerlink" href="#a1-aplikacja-konsolowa-do-migracji-z-bazy-postgresql" title="Permalink to this headline"></a></h4>
+<section id="kryteria-akceptacji">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#kryteria-akceptacji" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>część projektu realizująca migrację z bazy PostgreSQL będzie uruchamiana z linii poleceń</p></li>
+<li><p>jako parametry uruchomienia aplikacja przyjmie ścieżkę do pliku konfiguracyjnego z parametrami połączeń do baz danych oraz ścieżkę do pliku konfiguracyjnego ze zdefiniowanym sposobem mapowania</p></li>
+</ul>
+</section>
+<section id="przyklad">
+<h5>Przykład:<a class="headerlink" href="#przyklad" title="Permalink to this headline"></a></h5>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">java</span> <span class="n">Migrator</span> <span class="n">db</span><span class="o">.</span><span class="n">properties</span> <span class="n">mapping</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="a2-plik-konfiguracyjny-z-parametrami-polaczen-do-baz-postgresql-i-neo4j">
+<h4>A2. Plik konfiguracyjny z parametrami połączeń do baz PostgreSQL i Neo4j<a class="headerlink" href="#a2-plik-konfiguracyjny-z-parametrami-polaczen-do-baz-postgresql-i-neo4j" title="Permalink to this headline"></a></h4>
+<section id="id1">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>ustalono jednolity format pliku konfiguracyjnego dla połączeń z bazami PostgreSQL i Neo4j</p></li>
+<li><p>użytkownik ma możliwość podłączenia się do obu baz, podając jedynie nazwę pliku konfiguracyjnego</p></li>
+</ul>
+</section>
+<section id="plik-konfiguracyjny-bedzie-w-formacie-java-properties-z-kluczami">
+<h5>Plik konfiguracyjny będzie w formacie Java Properties z kluczami:<a class="headerlink" href="#plik-konfiguracyjny-bedzie-w-formacie-java-properties-z-kluczami" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">postgresHost</span></code> - adres serwera PostgreSQL</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">postgresDB</span></code> - nazwa użytkownika PostgreSQL</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">postgresUser</span></code> - hasło do bazy PostgreSQL</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">postgresPassword</span></code> - nazwa bazy PostgreSQL</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">neo4jHost</span></code> - adres bazy Neo4j</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">neo4jUser</span></code> - nazwa użytkownika Neo4j</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">neo4jPassword</span></code> - hasło do bazy Neo4j</p></li>
+</ul>
+</section>
+<section id="id2">
+<h5>Przykład:<a class="headerlink" href="#id2" title="Permalink to this headline"></a></h5>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">postgresHost</span><span class="o">=</span><span class="n">localhost</span>
+<span class="n">postgresDB</span><span class="o">=</span><span class="n">socialdata</span>
+<span class="n">postgresUser</span><span class="o">=</span><span class="n">sna_user</span>
+<span class="n">postgresPassword</span><span class="o">=</span><span class="n">password</span>
+<span class="n">neo4jHost</span><span class="o">=</span><span class="n">localhost</span>
+<span class="n">neo4jUser</span><span class="o">=</span><span class="n">neo4j</span>
+<span class="n">neo4jPassword</span><span class="o">=</span><span class="n">password</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="a3-plik-konfiguracyjny-z-mapowaniem-miedzy-schematem-bazy-relacyjnej-a-schematem-docelowym">
+<h4>A3. Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym<a class="headerlink" href="#a3-plik-konfiguracyjny-z-mapowaniem-miedzy-schematem-bazy-relacyjnej-a-schematem-docelowym" title="Permalink to this headline"></a></h4>
+<section id="id3">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id3" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest baza relacyjna SQL</p></li>
+</ul>
+</section>
+<section id="mapowania-beda-definiowane-w-pliku-o-formacie-json">
+<h5>Mapowania będą definiowane w pliku o formacie JSON:<a class="headerlink" href="#mapowania-beda-definiowane-w-pliku-o-formacie-json" title="Permalink to this headline"></a></h5>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="o">&lt;</span><span class="n">node_mapping</span><span class="o">&gt;</span><span class="p">,</span><span class="o">...</span>
+  <span class="p">],</span>
+  <span class="s2">&quot;edges&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="o">&lt;</span><span class="n">foreign_key_edge_mapping</span><span class="o">&gt;|&lt;</span><span class="n">join_table_edge_mapping</span><span class="o">&gt;</span><span class="p">,</span><span class="o">...</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">&lt;node_mapping&gt;</span></code> jest obiektem JSON reprezentującym mapowanie rekordów tabeli SQL na węzły w bazie Neo4j. Pola obiektu JSON:</p>
+<blockquote>
+<div><p><code class="code docutils literal notranslate"><span class="pre">sqlTableName</span></code> - nazwa tabeli w bazie SQL</p>
+<p><code class="code docutils literal notranslate"><span class="pre">nodeLabel</span></code> - etykieta węzła w bazie Neo4j</p>
+<p><code class="code docutils literal notranslate"><span class="pre">mappedColumns</span></code> - obiekt JSON, w którym klucze to nazwy kolumn tabeli <code class="code docutils literal notranslate"><span class="pre">sqlTableName</span></code>, a wartości to nazwy odpowiadających im atrybutów węzła</p>
+</div></blockquote>
+<p><code class="code docutils literal notranslate"><span class="pre">&lt;foreign_key_edge_mapping&gt;</span></code> jest obiektem JSON reprezentującym mapowanie powiązania kluczem obcym SQL na krawędź w bazie Neo4j. Pola obiektu JSON:</p>
+<blockquote>
+<div><p><code class="code docutils literal notranslate"><span class="pre">edgeLabel</span></code> - etykieta krawędzi w bazie Neo4j</p>
+<p><code class="code docutils literal notranslate"><span class="pre">foreignKey</span></code> - łańcuch znaków w formacie <code class="code docutils literal notranslate"><span class="pre">table.column</span></code> oznaczający tabelę i kolumnę klucza obcego w bazie SQL</p>
+<p><code class="code docutils literal notranslate"><span class="pre">from</span></code> - nazwa tabeli odpowiadającej węzłowi, z którego ma być poprowadzona krawędź</p>
+<p><code class="code docutils literal notranslate"><span class="pre">to</span></code> - nazwa tabeli odpowiadającej węzłowi, do którego ma być poprowadzona krawędź</p>
+</div></blockquote>
+<p><code class="code docutils literal notranslate"><span class="pre">&lt;join_table_edge_mapping&gt;</span></code> jest obiektem JSON reprezentującym mapowanie powiązania tabelą łącznikową SQL na krawędź w bazie Neo4j. Pola obiektu JSON:</p>
+<blockquote>
+<div><p><code class="code docutils literal notranslate"><span class="pre">edgeLabel</span></code> - etykieta krawędzi w bazie Neo4j</p>
+<p><code class="code docutils literal notranslate"><span class="pre">joinTable</span></code> - nazwa tabeli łącznikowej</p>
+<p><code class="code docutils literal notranslate"><span class="pre">from</span></code> - nazwa tabeli odpowiadającej węzłowi, z którego ma być poprowadzona krawędź</p>
+<p><code class="code docutils literal notranslate"><span class="pre">to</span></code> - nazwa tabeli odpowiadającej węzłowi, do którego ma być poprowadzona krawędź</p>
+<p><code class="code docutils literal notranslate"><span class="pre">mappedColumns</span></code> - obiekt JSON, w którym klucze to nazwy kolumn tabeli <code class="code docutils literal notranslate"><span class="pre">joinTable</span></code>, a wartości to nazwy odpowiadających im atrybutów krawędzi</p>
+</div></blockquote>
+</section>
+<section id="przyklad-dla-bazy-salon24">
+<h5>Przykład (dla bazy Salon24):<a class="headerlink" href="#przyklad-dla-bazy-salon24" title="Permalink to this headline"></a></h5>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+ <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;sqlTableName&quot;</span><span class="p">:</span> <span class="s2">&quot;authors&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;nodeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;mappedColumns&quot;</span><span class="p">:</span> <span class="p">{</span>
+       <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;bloglink&quot;</span><span class="p">:</span> <span class="s2">&quot;blog_url&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;sqlTableName&quot;</span><span class="p">:</span> <span class="s2">&quot;posts&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;nodeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;Post&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;mappedColumns&quot;</span><span class="p">:</span> <span class="p">{</span>
+       <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;categoryno&quot;</span><span class="p">:</span> <span class="s2">&quot;categoryno&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;link&quot;</span><span class="p">:</span> <span class="s2">&quot;url&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;title&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;sqlTableName&quot;</span><span class="p">:</span> <span class="s2">&quot;comments&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;nodeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;Comment&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;mappedColumns&quot;</span><span class="p">:</span> <span class="p">{</span>
+       <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;content&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;salon_id&quot;</span><span class="p">:</span> <span class="s2">&quot;salon_id&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;title&quot;</span>
+     <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;sqlTableName&quot;</span><span class="p">:</span> <span class="s2">&quot;tags&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;nodeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;Tag&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;mappedColumns&quot;</span><span class="p">:</span> <span class="p">{</span>
+       <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tag_name&quot;</span><span class="p">,</span>
+       <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;id&quot;</span>
+     <span class="p">}</span>
+   <span class="p">}</span>
+ <span class="p">],</span>
+ <span class="s2">&quot;edges&quot;</span><span class="p">:</span> <span class="p">[</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;edgeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;IsAuthorOf&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;foreignKey&quot;</span><span class="p">:</span> <span class="s2">&quot;posts.author_id&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;authors&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;to&quot;</span><span class="p">:</span> <span class="s2">&quot;posts&quot;</span>
+   <span class="p">},</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;edgeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;IsParentCommentOf&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;foreignKey&quot;</span><span class="p">:</span> <span class="s2">&quot;comments.parentcomment_id&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;comments&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;to&quot;</span><span class="p">:</span> <span class="s2">&quot;comments&quot;</span>
+   <span class="p">},</span>
+   <span class="p">{</span>
+     <span class="s2">&quot;edgeLabel&quot;</span><span class="p">:</span> <span class="s2">&quot;IsTaggedWith&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;joinTable&quot;</span><span class="p">:</span> <span class="s2">&quot;posts_tags&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;posts&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;to&quot;</span><span class="p">:</span> <span class="s2">&quot;tags&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;mappedColumns&quot;</span><span class="p">:</span> <span class="p">{}</span>
+   <span class="p">}</span>
+ <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="a4-interaktywne-przejscie-przez-tworzenie-mapowania-miedzy-schematem-bazy-relacyjnej-a-docelowym">
+<h4>A4. Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym<a class="headerlink" href="#a4-interaktywne-przejscie-przez-tworzenie-mapowania-miedzy-schematem-bazy-relacyjnej-a-docelowym" title="Permalink to this headline"></a></h4>
+<section id="id4">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id4" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową</p></li>
+<li><p>aplikacja umożliwia użytkownikowi ustalenie, że określone tabele lub kolumny nie będą importowane</p></li>
+<li><dl class="simple">
+<dt>aplikacja podpowiada użytkownikowi i umożliwia wybór dostępnego:</dt><dd><ul>
+<li><p>schematu docelowej bazy grafowej</p></li>
+<li><p>typu wierzchołka dla danej tabeli</p></li>
+<li><p>atrybutu wierzchołka dla kolumny tabeli</p></li>
+<li><p>typu krawędzi dla klucza obcego</p></li>
+<li><p>typu krawędzi dla tabeli łącznikowej</p></li>
+<li><p>atrybutu krawędzi dla kolumny tabeli łącznikowej</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="a5-plik-konfiguracyjny-z-mapowaniem-miedzy-lista-krawedzi-w-pliku-xml-a-schematem-docelowym">
+<h4>A5. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym<a class="headerlink" href="#a5-plik-konfiguracyjny-z-mapowaniem-miedzy-lista-krawedzi-w-pliku-xml-a-schematem-docelowym" title="Permalink to this headline"></a></h4>
+<section id="id5">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id5" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest plik XML z grafem w postaci listy krawędzi</p></li>
+<li><p>użytkownik może wybrać w pliku jeden z dostępnych schematów bazy grafowej</p></li>
+<li><dl class="simple">
+<dt>użytkownik może ustalić w pliku mapowanie między tagiem XML a:</dt><dd><ul>
+<li><p>typem wierzchołka</p></li>
+<li><p>atrybutem wierzchołka</p></li>
+<li><p>typem krawędzi</p></li>
+<li><p>atrybutem krawędzi</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>użytkownik może ustalić w pliku, że określone tagi XML nie będą importowane lub są tagami zewnętrznymi dla właściwych danych</p></li>
+</ul>
+</section>
+</section>
+<section id="a6-interaktywne-przejscie-przez-tworzenie-mapowania-miedzy-lista-krawedzi-w-pliku-xml-a-schematem-docelowym">
+<h4>A6. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym<a class="headerlink" href="#a6-interaktywne-przejscie-przez-tworzenie-mapowania-miedzy-lista-krawedzi-w-pliku-xml-a-schematem-docelowym" title="Permalink to this headline"></a></h4>
+<section id="id6">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id6" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową</p></li>
+<li><p>aplikacja umożliwia użytkownikowi ustalenie, że określone tagi XML nie będą importowane lub są tagami zewnętrznymi dla właściwych danych</p></li>
+<li><dl class="simple">
+<dt>aplikacja podpowiada użytkownikowi i umożliwia wybór dostępnego:</dt><dd><ul>
+<li><p>schematu docelowej bazy grafowej</p></li>
+<li><p>typu wierzchołka dla odpowiedniego tagu XML</p></li>
+<li><p>typu krawędzi dla odpowiedniego tagu XML</p></li>
+<li><p>typu atrybutu krawędzi dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego krawędzi</p></li>
+<li><p>typu atrybutu wierzchołka dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego wierzchołkowi</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="a7-plik-konfiguracyjny-z-mapowaniem-miedzy-lista-krawedzi-w-pliku-csv-a-schematem-docelowym">
+<h4>A7. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV a schematem docelowym<a class="headerlink" href="#a7-plik-konfiguracyjny-z-mapowaniem-miedzy-lista-krawedzi-w-pliku-csv-a-schematem-docelowym" title="Permalink to this headline"></a></h4>
+<section id="id7">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id7" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>ustalono jednolity format pliku konfiguracyjnego dla mapowania, gdy zbiorem źródłowym jest plik CSV z grafem w postaci listy krawędzi</p></li>
+<li><p>użytkownik może wybrać w pliku jeden z dostępnych schematów bazy grafowej</p></li>
+<li><p>aplikacja pozwala na wczytywanie zarówno plików CSV z etykietami kolumn, jak i bez</p></li>
+<li><dl class="simple">
+<dt>użytkownik może ustalić w pliku mapowanie między kolumną a:</dt><dd><ul>
+<li><p>typem wierzchołka</p></li>
+<li><p>atrybutem wierzchołka</p></li>
+<li><p>atrybutem krawędzi</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>użytkownik może ustalić w pliku, że określone kolumny nie będą importowane</p></li>
+</ul>
+</section>
+</section>
+<section id="a8-interaktywne-przejscie-przez-tworzenie-mapowania-miedzy-lista-krawedzi-w-pliku-csv-a-schematem-docelowym">
+<h4>A8. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV a schematem docelowym<a class="headerlink" href="#a8-interaktywne-przejscie-przez-tworzenie-mapowania-miedzy-lista-krawedzi-w-pliku-csv-a-schematem-docelowym" title="Permalink to this headline"></a></h4>
+<section id="id8">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id8" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową</p></li>
+<li><p>aplikacja umożliwia użytkownikowi ustalenie, że określone kolumny nie będą importowane</p></li>
+<li><dl class="simple">
+<dt>aplikacja podpowiada użytkownikowi i umożliwia wybór dostępnego:</dt><dd><ul>
+<li><p>schematu docelowej bazy grafowej</p></li>
+<li><p>typu wierzchołka dla odpowiedniej kolumny</p></li>
+<li><p>typu atrybutu krawędzi dla odpowiedniej kolumny</p></li>
+<li><p>typu atrybutu wierzchołka dla odpowiedniej kolumny</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="a9-zawezenie-przedzialu-czasowego-przy-imporcie-danych">
+<h4>A9. Zawężenie przedziału czasowego przy imporcie danych<a class="headerlink" href="#a9-zawezenie-przedzialu-czasowego-przy-imporcie-danych" title="Permalink to this headline"></a></h4>
+<section id="id9">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id9" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>aplikacja umożliwia użytkownikowi filtrowanie importowanych danych po jednym lub więcej atrybutach reprezentujących datę i czas</p></li>
+<li><p>aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla importowanych danych</p></li>
+</ul>
+</section>
+</section>
+<section id="a10-rozszerzenie-istniejacego-grafu">
+<h4>A10. Rozszerzenie istniejącego grafu<a class="headerlink" href="#a10-rozszerzenie-istniejacego-grafu" title="Permalink to this headline"></a></h4>
+<section id="id10">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id10" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>aplikacja pozwala na import nowych danych do już istniejącego grafu</p></li>
+</ul>
+</section>
+</section>
+<section id="a11-miary-podobienstwa-wezlow">
+<h4>A11. Miary podobieństwa węzłów<a class="headerlink" href="#a11-miary-podobienstwa-wezlow" title="Permalink to this headline"></a></h4>
+<section id="id11">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id11" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>aplikacja rozpoznaje, gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami</p></li>
+<li><p>miara podobieństwa węzłów jest wyznaczana na podstawie wybranych przez użytkownika atrybutów węzłów</p></li>
+</ul>
+</section>
+</section>
+<section id="a12-scalanie-grafu-wejsciowego-i-docelowego">
+<h4>A12. Scalanie grafu wejściowego i docelowego<a class="headerlink" href="#a12-scalanie-grafu-wejsciowego-i-docelowego" title="Permalink to this headline"></a></h4>
+<section id="id12">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id12" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><dl class="simple">
+<dt>gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej:</dt><dd><ul>
+<li><p>aplikacja pozwala użytkownikowi zdecydować, powyżej jakiej wartości miary podobieństwa scalić odpowiednie węzły, a poniżej której uznawać je za osobne</p></li>
+<li><p>w przypadku konfliktu wartości między atrybutami scalanych węzłów aplikacja pozwala użytkownikowi wybrać czy woli zachować wartości źródłowe czy docelowe</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="b-analiza-sieci">
+<h3>B. Analiza sieci<a class="headerlink" href="#b-analiza-sieci" title="Permalink to this headline"></a></h3>
+<section id="b1-zawezenie-przedzialu-czasowego-przy-analizie-sieci">
+<h4>B1. Zawężenie przedziału czasowego przy analizie sieci<a class="headerlink" href="#b1-zawezenie-przedzialu-czasowego-przy-analizie-sieci" title="Permalink to this headline"></a></h4>
+<section id="id13">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id13" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>aplikacja umożliwia użytkownikowi filtrowanie danych wejściowych do danego algorytmu SNA po jednym lub więcej atrybutach reprezentujących datę i czas</p></li>
+<li><p>aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla danych wejściowych do danego algorytmu SNA</p></li>
+</ul>
+</section>
+</section>
+<section id="b2-wybor-i-wykonanie-algorytmu-analizy-sieci">
+<h4>B2. Wybór i wykonanie algorytmu analizy sieci<a class="headerlink" href="#b2-wybor-i-wykonanie-algorytmu-analizy-sieci" title="Permalink to this headline"></a></h4>
+<section id="id14">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id14" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>aplikacja umożliwia użytkownikowi wybór jednego z dostępnych algorytmów analizy sieci</p></li>
+<li><p>aplikacja wykonuje algorytm SNA i zapisuje wyniki w tej samej bazie, co dane wejściowe lub w nowej bazie, w zależności od tego, co ustali użytkownik</p></li>
+</ul>
+</section>
+</section>
+<section id="b3-dostepne-algorytmy-sna">
+<h4>B3. Dostępne algorytmy SNA<a class="headerlink" href="#b3-dostepne-algorytmy-sna" title="Permalink to this headline"></a></h4>
+<section id="id15">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id15" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><dl class="simple">
+<dt>aplikacja pozwala na uruchomienie następujących algorytmów / obliczenie następujących parametrów:</dt><dd><ul>
+<li><p>Density</p></li>
+<li><p>Clustering coefficient</p></li>
+<li><p>Degree centrality</p></li>
+<li><p>Closeness centrality</p></li>
+<li><p>Betweenness centrality</p></li>
+<li><p>PageRank</p></li>
+<li><p>Degree distribution</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="b4-eksport-do-formatu-json-lub-csv">
+<h4>B4. Eksport do formatu JSON lub CSV<a class="headerlink" href="#b4-eksport-do-formatu-json-lub-csv" title="Permalink to this headline"></a></h4>
+<section id="id16">
+<h5>Kryteria akceptacji:<a class="headerlink" href="#id16" title="Permalink to this headline"></a></h5>
+<ul class="simple">
+<li><p>użytkownik ma możliwość eksportu grafu z wynikami analiz do pliku w formacie JSON lub CSV</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
