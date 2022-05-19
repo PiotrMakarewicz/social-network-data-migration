@@ -30,6 +30,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
     private final String postgresUser;
     private final String postgresPassword;
     private final SchemaMetaData schemaMetaData;
+    private boolean dryRun;
 
     public PostgresMigrator(String configPath) throws IOException, SQLException {
         Properties properties = new Properties();
@@ -46,6 +47,11 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 postgresDB, postgresUser, postgresPassword);
         this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
         this.schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
+    }
+
+    public PostgresMigrator(String configPath, boolean dryRun) throws SQLException, IOException {
+        this(configPath);
+        this.dryRun = dryRun;
     }
 
     @Override
@@ -88,7 +94,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
         callBuilder.append("""
                 })",
-                {batchSize:10000, parallel:true}) YIELD batches RETURN batches
+                {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
                 """);
 
         this.execute(callBuilder.toString());
@@ -121,9 +127,13 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
                 );
         StringBuilder callBuilder = new StringBuilder(call);
 
+        String foreignKeyTable = edgeMapping.getForeignKeyTable();
+        String fromTable = edgeMapping.getFromTable();
+        String toTable = edgeMapping.getToTable();
+
         List<FKColumnInfo> foreignKeys = schemaMetaData.getForeignKeyColumnsForTable(
-                edgeMapping.getForeignKeyTable(),
-                edgeMapping.getToTable()
+                foreignKeyTable,
+                foreignKeyTable.equals(toTable) ? fromTable : toTable
         );
         for (FKColumnInfo foreignKey : foreignKeys){
             if (foreignKey.tableName().equals(edgeMapping.getFromTable())) {
@@ -161,7 +171,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         ));
         callBuilder.append(" CREATE (a)-[r:%s]->(b)".formatted(edgeMapping.getEdgeLabel()));
         callBuilder.append("""
-                ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
+                ", {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
                 """);
 
         this.execute(callBuilder.toString());
@@ -221,7 +231,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
             callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
         callBuilder.append("}]->(b)");
         callBuilder.append("""
-                ", {batchSize:10000, parallel:true}) YIELD batches RETURN batches
+                ", {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
                 """);
 
         this.execute(callBuilder.toString());
@@ -229,6 +239,10 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
 
     private void execute(String query) {
         System.out.println(query);
+
+        if (this.dryRun)
+            return;
+
         long start = System.currentTimeMillis();
         try (Session session = neo4jDriver.session()){
             session.writeTransaction(tx -> {
