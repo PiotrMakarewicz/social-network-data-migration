@@ -23,8 +23,24 @@ _________
 ::
 
   java Migrator db.properties mapping.json
+  
+A1. Aplikacja konsolowa do migracji z pojedynczego pliku CSV/XML
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Kryteria akceptacji:
+_____________________
+* część projektu realizująca migrację z pojedynczego pliku CSV/XMLL będzie uruchamiana z linii poleceń
+* jako parametry uruchomienia aplikacja przyjmie ścieżkę do pliku konfiguracyjnego z parametrami połączeń do baz danych oraz ścieżkę do pliku z danymi
 
-A2. Plik konfiguracyjny z parametrami połączeń do baz PostgreSQL i Neo4j
+Przykład:
+_________
+
+::
+
+  java Migrator db.properties data.csv
+  
+  
+
+A3. Plik konfiguracyjny z parametrami połączeń do baz PostgreSQL i Neo4j
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kryteria akceptacji:
@@ -56,7 +72,7 @@ _________
 
 
 
-A3. Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym
+A4. Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -178,7 +194,7 @@ ____________________________
   ]
  }
 
-A4. Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym
+A5. Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -192,7 +208,7 @@ ____________________
     - typu krawędzi dla tabeli łącznikowej
     - atrybutu krawędzi dla kolumny tabeli łącznikowej
 
-A5. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
+A6. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -205,7 +221,7 @@ ____________________
         - atrybutem krawędzi
 * użytkownik może ustalić w pliku, że określone tagi XML nie będą importowane lub są tagami zewnętrznymi dla właściwych danych
 
-A6. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
+A7. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -218,7 +234,7 @@ ____________________
     - typu atrybutu krawędzi dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego krawędzi
     - typu atrybutu wierzchołka dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego wierzchołkowi
 
-A7. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV a schematem docelowym
+A8. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -231,7 +247,7 @@ ____________________
         - atrybutem krawędzi
 * użytkownik może ustalić w pliku, że określone kolumny nie będą importowane
 
-A8. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV a schematem docelowym
+A9. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -243,27 +259,27 @@ ____________________
     - typu atrybutu krawędzi dla odpowiedniej kolumny
     - typu atrybutu wierzchołka dla odpowiedniej kolumny
 
-A9. Zawężenie przedziału czasowego przy imporcie danych
+A10. Zawężenie przedziału czasowego przy imporcie danych
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja umożliwia użytkownikowi filtrowanie importowanych danych po jednym lub więcej atrybutach reprezentujących datę i czas
 * aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla importowanych danych
 
-A10. Rozszerzenie istniejącego grafu
+A11. Rozszerzenie istniejącego grafu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja pozwala na import nowych danych do już istniejącego grafu
 
-A11. Miary podobieństwa węzłów
+A12. Miary podobieństwa węzłów
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja rozpoznaje, gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami
 * miara podobieństwa węzłów jest wyznaczana na podstawie wybranych przez użytkownika atrybutów węzłów
  
-A12. Scalanie grafu wejściowego i docelowego
+A13. Scalanie grafu wejściowego i docelowego
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
