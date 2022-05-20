@@ -179,12 +179,6 @@ ____________________________
       "to": "posts"
     },
     {
-      "edgeLabel": "IsParentCommentOf",
-      "foreignKey": "comments.parentcomment_id",
-      "from": "comments",
-      "to": "comments"
-    },
-    {
       "edgeLabel": "IsTaggedWith",
       "joinTable": "posts_tags",
       "from": "posts",
