@@ -16,4 +16,3 @@ Contents:
    graphalgorithms
    configuration
    datasets
-   
