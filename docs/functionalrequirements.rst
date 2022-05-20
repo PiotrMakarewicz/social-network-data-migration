@@ -24,11 +24,11 @@ _________
 
   java Migrator db.properties mapping.json
   
-A1. Aplikacja konsolowa do migracji z pojedynczego pliku CSV/XML
+A2. Aplikacja konsolowa do migracji z pojedynczego pliku CSV/XML
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 _____________________
-* część projektu realizująca migrację z pojedynczego pliku CSV/XMLL będzie uruchamiana z linii poleceń
+* część projektu realizująca migrację z pojedynczego pliku CSV/XML będzie uruchamiana z linii poleceń
 * jako parametry uruchomienia aplikacja przyjmie ścieżkę do pliku konfiguracyjnego z parametrami połączeń do baz danych oraz ścieżkę do pliku z danymi
 
 Przykład:
