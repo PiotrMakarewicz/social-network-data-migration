@@ -2,15 +2,15 @@ Specyfikacja funkcjonalna
 ===========================
 
 System do migracji danych dotyczących sieci społecznych z heterogenicznych źródeł do grafowej bazy danych
-++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 Autorzy: Gabriel Kępka, Piotr Makarewicz
+
+
+Migracja danych
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
-A. Migracja danych
-------------------
-
-A1. Aplikacja konsolowa do migracji z bazy PostgreSQL
+Aplikacja konsolowa do migracji z bazy PostgreSQL
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 _____________________
@@ -24,7 +24,7 @@ _________
 
   java Migrator db.properties mapping.json
   
-A2. Aplikacja konsolowa do migracji z pojedynczego pliku CSV/XML
+Aplikacja konsolowa do migracji z pojedynczego pliku CSV/XML
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 _____________________
@@ -40,7 +40,7 @@ _________
   
   
 
-A3. Plik konfiguracyjny z parametrami połączeń do baz PostgreSQL i Neo4j
+Plik konfiguracyjny z parametrami połączeń do baz PostgreSQL i Neo4j
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kryteria akceptacji:
@@ -72,7 +72,7 @@ _________
 
 
 
-A4. Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym
+Plik konfiguracyjny z mapowaniem między schematem bazy relacyjnej a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -188,8 +188,8 @@ ____________________________
   ]
  }
 
-A5. Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interaktywne przejście przez tworzenie mapowania między schematem bazy relacyjnej a docelowym
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * użytkownik może zdefiniować te same mapowania, co za pomocą plików konfiguracyjnych, przez interakcję z aplikacją konsolową
@@ -202,7 +202,7 @@ ____________________
     - typu krawędzi dla tabeli łącznikowej
     - atrybutu krawędzi dla kolumny tabeli łącznikowej
 
-A6. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
+Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -215,7 +215,7 @@ ____________________
         - atrybutem krawędzi
 * użytkownik może ustalić w pliku, że określone tagi XML nie będą importowane lub są tagami zewnętrznymi dla właściwych danych
 
-A7. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
+Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku XML a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -228,7 +228,7 @@ ____________________
     - typu atrybutu krawędzi dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego krawędzi
     - typu atrybutu wierzchołka dla odpowiedniego tagu XML wewnątrz tagu odpowiadającego wierzchołkowi
 
-A8. Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV a schematem docelowym
+Plik konfiguracyjny z mapowaniem między listą krawędzi w pliku CSV a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -241,7 +241,7 @@ ____________________
         - atrybutem krawędzi
 * użytkownik może ustalić w pliku, że określone kolumny nie będą importowane
 
-A9. Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV a schematem docelowym
+Interaktywne przejście przez tworzenie mapowania między listą krawędzi w pliku CSV a schematem docelowym
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -253,27 +253,27 @@ ____________________
     - typu atrybutu krawędzi dla odpowiedniej kolumny
     - typu atrybutu wierzchołka dla odpowiedniej kolumny
 
-A10. Zawężenie przedziału czasowego przy imporcie danych
+Zawężenie przedziału czasowego przy imporcie danych
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja umożliwia użytkownikowi filtrowanie importowanych danych po jednym lub więcej atrybutach reprezentujących datę i czas
 * aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla importowanych danych
 
-A11. Rozszerzenie istniejącego grafu
+Rozszerzenie istniejącego grafu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja pozwala na import nowych danych do już istniejącego grafu
 
-A12. Miary podobieństwa węzłów
+Miary podobieństwa węzłów
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja rozpoznaje, gdy dane importowane pochodzą z tego samego źródła, co dane w bazie grafowej. Wtedy aplikacja wyznacza miarę podobieństwa między odpowiednimi węzłami
 * miara podobieństwa węzłów jest wyznaczana na podstawie wybranych przez użytkownika atrybutów węzłów
  
-A13. Scalanie grafu wejściowego i docelowego
+Scalanie grafu wejściowego i docelowego
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -281,24 +281,24 @@ ____________________
         - aplikacja pozwala użytkownikowi zdecydować, powyżej jakiej wartości miary podobieństwa scalić odpowiednie węzły, a poniżej której uznawać je za osobne
         - w przypadku konfliktu wartości między atrybutami scalanych węzłów aplikacja pozwala użytkownikowi wybrać czy woli zachować wartości źródłowe czy docelowe
 
-B. Analiza sieci
-----------------
+Analiza sieci
+++++++++++++++++++++++++++++++++++++++++++++++++
 
-B1. Zawężenie przedziału czasowego przy analizie sieci
+Zawężenie przedziału czasowego przy analizie sieci
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja umożliwia użytkownikowi filtrowanie danych wejściowych do danego algorytmu SNA po jednym lub więcej atrybutach reprezentujących datę i czas
 * aplikacja umożliwia użytkownikowi ustalenie przedziału czasowego dla danych wejściowych do danego algorytmu SNA
 
-B2. Wybór i wykonanie algorytmu analizy sieci
+Wybór i wykonanie algorytmu analizy sieci
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
 * aplikacja umożliwia użytkownikowi wybór jednego z dostępnych algorytmów analizy sieci
 * aplikacja wykonuje algorytm SNA i zapisuje wyniki w tej samej bazie, co dane wejściowe lub w nowej bazie, w zależności od tego, co ustali użytkownik
 
-B3. Dostępne algorytmy SNA
+Dostępne algorytmy SNA
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Kryteria akceptacji:
 ____________________
@@ -311,7 +311,7 @@ ____________________
     - PageRank
     - Degree distribution
 
-B4. Eksport do formatu JSON lub CSV
+Eksport do formatu JSON lub CSV
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kryteria akceptacji:
