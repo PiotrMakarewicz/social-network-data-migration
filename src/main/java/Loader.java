@@ -1,4 +1,3 @@
-import mapping.loader.MappingLoader;
 import mapping.loader.SQLMappingLoader;
 import migrator.Migrator;
 import migrator.PostgresMigrator;
@@ -11,7 +10,7 @@ public class Loader {
             return;
         }
         try (Migrator migrator = new PostgresMigrator(args[0])){
-            MappingLoader mappingLoader = new SQLMappingLoader();
+            SQLMappingLoader mappingLoader = new SQLMappingLoader();
             migrator.migrateData(mappingLoader.load(args[1]));
         }
     }

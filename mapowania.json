@@ -35,29 +35,24 @@
 
 ### MAPOWANIE CSV
 {
-    "nodes": [
-        {
-            "node_label": "Person",
-            "mapped_columns": {
-                "0": "id"  
-            }
-        },
-        {
-            "node_label": "Person",
-            "mapped_columns": {
-                "1": "id"  
-            }   
+    "fromNode": {
+        "nodeLabel": "Person",
+        "mappedColumns": {
+            "0": "id"
         }
-    ]
-    "edges": [
-        {
-            "edge_label": "InteractedWith",
-            "from": "0",
-            "to": "1",
-            "mapped_columns": {
-                "2": "creation_date"  
-            }   
+    },
+
+    "toNode": {
+        "nodeLabel": "Person",
+        "mappedColumns": {
+            "1": "id"
         }
-    ]
-    
+    },
+
+    "edge": {
+        "edgeLabel": "InteractsWith",
+        "mappedColumns": {
+            "2": "creation_date"
+        }
+    }
 }

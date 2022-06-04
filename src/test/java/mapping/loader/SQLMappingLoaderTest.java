@@ -2,11 +2,8 @@ package mapping.loader;
 
 import com.google.gson.Gson;
 import mapping.SchemaMapping;
-import mapping.loader.json.JsonSchema;
-import mapping.node.SQLNodeMapping;
+import mapping.loader.json.SQLMappingJsonSchema;
 import org.junit.jupiter.api.Test;
-
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -79,7 +76,7 @@ public class SQLMappingLoaderTest {
             }
         """;
 
-        JsonSchema jsonSchema = new Gson().fromJson(rawJson, JsonSchema.class);
+        SQLMappingJsonSchema jsonSchema = new Gson().fromJson(rawJson, SQLMappingJsonSchema.class);
         var loader = new SQLMappingLoader();
         SchemaMapping mapping = loader.convertToSchemaMapping(jsonSchema);
         assertEquals(4, mapping.getNodeMappings().size());

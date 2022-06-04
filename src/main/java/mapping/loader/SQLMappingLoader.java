@@ -6,26 +6,31 @@ import mapping.SQLSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.ForeignKeyMapping;
 import mapping.edge.JoinTableMapping;
-import mapping.loader.json.Edge;
-import mapping.loader.json.JsonSchema;
-import mapping.loader.json.Node;
+import mapping.loader.json.EdgeJson;
+import mapping.loader.json.SQLMappingJsonSchema;
+import mapping.loader.json.NodeJson;
 import mapping.node.SQLNodeMapping;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
 
-public class SQLMappingLoader implements MappingLoader {
-    @Override
+public class SQLMappingLoader {
+
     public SchemaMapping load(String filename) throws FileNotFoundException {
-        JsonSchema jsonSchema = parseJson(filename);
+        SQLMappingJsonSchema jsonSchema = parseJson(filename);
         return convertToSchemaMapping(jsonSchema);
     }
+    protected SQLMappingJsonSchema parseJson(String filename) throws FileNotFoundException {
+        Gson gson = new Gson();
+        JsonReader reader = new JsonReader(new FileReader(filename));
+        return gson.fromJson(reader, SQLMappingJsonSchema.class);
+    }
 
-    public SchemaMapping convertToSchemaMapping(JsonSchema jsonSchema){
+    protected SchemaMapping convertToSchemaMapping(SQLMappingJsonSchema jsonSchema){
         SQLSchemaMapping mapping = new SQLSchemaMapping();
 
-        for (Node node: jsonSchema.getNodes()){
+        for (NodeJson node: jsonSchema.getNodes()){
             if (node.getNodeLabel() == null || node.getSqlTableName() == null){
                 throw new RuntimeException("Invalid schema mapping JSON file");
             }
@@ -41,7 +46,7 @@ public class SQLMappingLoader implements MappingLoader {
             ));
         }
 
-        for (Edge edge: jsonSchema.getEdges()){
+        for (EdgeJson edge: jsonSchema.getEdges()){
             if (edge.getEdgeLabel() == null
                     || edge.getFrom() == null
                     || edge.getTo() == null
@@ -58,8 +63,8 @@ public class SQLMappingLoader implements MappingLoader {
                 mapping.addEdgeMapping(
                         new JoinTableMapping(
                                 edge.getEdgeLabel(),
-                                mapping.getNodeLabelForTableName(edge.getFrom()),
-                                mapping.getNodeLabelForTableName(edge.getTo()),
+                                mapping.getNodeLabelForTableName(edge.getFrom()).get(),
+                                mapping.getNodeLabelForTableName(edge.getTo()).get(),
                                 edge.getFrom(),
                                 edge.getTo(),
                                 edge.getJoinTable(),
@@ -71,8 +76,8 @@ public class SQLMappingLoader implements MappingLoader {
                 mapping.addEdgeMapping(
                         new ForeignKeyMapping(
                                 edge.getEdgeLabel(),
-                                mapping.getNodeLabelForTableName(edge.getFrom()),
-                                mapping.getNodeLabelForTableName(edge.getTo()),
+                                mapping.getNodeLabelForTableName(edge.getFrom()).get(),
+                                mapping.getNodeLabelForTableName(edge.getTo()).get(),
                                 edge.getFrom(),
                                 edge.getTo(),
                                 edge.getForeignKey()
@@ -81,11 +86,5 @@ public class SQLMappingLoader implements MappingLoader {
             }
         }
         return mapping;
-    }
-
-    private JsonSchema parseJson(String filename) throws FileNotFoundException {
-        Gson gson = new Gson();
-        JsonReader reader = new JsonReader(new FileReader(filename));
-        return gson.fromJson(reader, JsonSchema.class);
     }
 }

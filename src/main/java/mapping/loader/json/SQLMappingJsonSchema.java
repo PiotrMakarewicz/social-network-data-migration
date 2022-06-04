@@ -2,21 +2,21 @@ package mapping.loader.json;
 
 import java.util.List;
 
-public class JsonSchema {
-    private List<Node> nodes;
-    private List<Edge> edges;
+public class SQLMappingJsonSchema {
+    private List<NodeJson> nodes;
+    private List<EdgeJson> edges;
 
-    public List<Node> getNodes() {
+    public List<NodeJson> getNodes() {
         return nodes;
     }
 
-    public List<Edge> getEdges() {
+    public List<EdgeJson> getEdges() {
         return edges;
     }
 
     @Override
     public String toString() {
-        return "JsonSchema{" + "\n" +
+        return "SQLMappingJsonSchema{" + "\n" +
                 "nodes=" + nodes + ",\n" +
                 "edges=" + edges + "\n" +
                 '}';
