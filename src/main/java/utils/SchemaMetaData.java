@@ -2,9 +2,7 @@ package utils;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public class SchemaMetaData implements AutoCloseable {
     private final Connection connection;
@@ -27,10 +25,10 @@ public class SchemaMetaData implements AutoCloseable {
         }
     }
 
-    public class FKColumnInfo {
+    public class ForeignKeyInfo {
         public ColumnInfo foreignKeyColumn;
         public ColumnInfo referencedColumn;
-        public FKColumnInfo(String columnName,
+        public ForeignKeyInfo(String columnName,
                           String tableName,
                           String referencedColumnName,
                           String referencedTableName) {
@@ -79,17 +77,17 @@ public class SchemaMetaData implements AutoCloseable {
     }
 
     /**
-     * Returns list of FKColumnInfo containing information about columns
+     * Returns list of ForeignKeyInfo containing information about columns
      * in <code>tableName</code> referencing primary
      * keys of <code>referencedTableName</code>.
      *
      * @param  tableName  name of table with foreign key column
      * @param  referencedTableName name of table referenced by foreign key column in <code>tableName</code>
-     * @return Returns list of FKColumnInfo containing information about columns
+     * @return Returns list of ForeignKeyInfo containing information about columns
      *       in <code>tableName</code>
      */
-    public List<FKColumnInfo> getForeignKeyColumnsForTable(String tableName, String referencedTableName) {
-        List<FKColumnInfo> foreignKeys = this.getForeignKeyColumns(tableName);
+    public List<ForeignKeyInfo> getForeignKeyInfoForTable(String tableName, String referencedTableName) {
+        List<ForeignKeyInfo> foreignKeys = this.getForeignKeyInfo(tableName);
         return foreignKeys
                 .stream()
                 .filter(fkColumnInfo -> fkColumnInfo.referencedTableName().equals(referencedTableName))
@@ -123,8 +121,8 @@ public class SchemaMetaData implements AutoCloseable {
         return primaryKeyColumns;
     }
 
-    public List<FKColumnInfo> getForeignKeyColumns(String tableName) {
-        List<FKColumnInfo> result = new ArrayList<>();
+    public List<ForeignKeyInfo> getForeignKeyInfo(String tableName) {
+        List<ForeignKeyInfo> result = new ArrayList<>();
         String sql = """
                 SELECT kcu_from.column_name, kcu_from.table_name, kcu_to.column_name, kcu_to.table_name
                 FROM information_schema.table_constraints tc
@@ -146,7 +144,7 @@ public class SchemaMetaData implements AutoCloseable {
             ps.setObject(1, tableName);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                FKColumnInfo columnInfo = new FKColumnInfo(
+                ForeignKeyInfo columnInfo = new ForeignKeyInfo(
                         rs.getString(1),
                         rs.getString(2),
                         rs.getString(3),

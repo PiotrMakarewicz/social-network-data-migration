@@ -11,7 +11,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import utils.SchemaMetaData;
-import utils.SchemaMetaData.FKColumnInfo;
+import utils.SchemaMetaData.ForeignKeyInfo;
 import utils.SchemaMetaData.ColumnInfo;
 
 import java.io.FileInputStream;
@@ -62,42 +62,46 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
 
     private void createNode(NodeMapping nodeMapping) {
         SQLNodeMapping sqlNodeMapping = (SQLNodeMapping) nodeMapping;
-
         this.createIndex(sqlNodeMapping);
 
-        String call = """
-                CALL apoc.periodic.iterate(
-                'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
-                "CREATE (n:%s{
-                """.formatted(
-                    postgresHost,
-                    postgresDB,
-                    postgresUser,
-                    postgresPassword,
-                    sqlNodeMapping.getSqlTableName(),
-                    sqlNodeMapping.getNodeLabel()
-                );
-        StringBuilder callBuilder = new StringBuilder(call);
-        callBuilder.append("__table_name:'%s',".formatted(sqlNodeMapping.getSqlTableName()));
-        sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
-            callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
-        });
+        String tableName = sqlNodeMapping.getSqlTableName();
 
-        List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(sqlNodeMapping.getSqlTableName());
-        primaryKeyColumns.forEach(column -> {
-            callBuilder.append("__%s:row.%s,".formatted(
+        String loadJdbcCall = "CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row"
+                .formatted(postgresHost,
+                        postgresDB,
+                        postgresUser,
+                        postgresPassword,
+                        tableName);
+
+        StringBuilder mappedColumns = new StringBuilder();
+        mappedColumns.append("__table_name:'%s',".formatted(tableName));
+        sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
+            mappedColumns.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
+        });
+        mappedColumns.setLength(mappedColumns.length() - 1); // delete trailing comma
+
+        StringBuilder primaryKeyColumns = new StringBuilder();
+        schemaMetaData.getPrimaryKeyColumns(tableName).forEach(column -> {
+            primaryKeyColumns.append("__%s:row.%s,".formatted(
                     column.columnName,
                     column.columnName
             ));
         });
+        primaryKeyColumns.setLength(primaryKeyColumns.length() - 1); // delete trailing comma
 
-        callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
-        callBuilder.append("""
-                })",
+        String call = """
+                CALL apoc.periodic.iterate(
+                '%s',
+                "CREATE (n:%s{%s, %s})",
                 {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
-                """);
+                """.formatted(
+                    loadJdbcCall,
+                    sqlNodeMapping.getNodeLabel(),
+                    mappedColumns.toString(),
+                    primaryKeyColumns.toString()
+                );
 
-        this.execute(callBuilder.toString());
+        this.execute(call);
     }
 
     private void createEdge(EdgeMapping edgeMapping) {
@@ -109,132 +113,139 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
     }
 
     private void createEdgeFromForeignKeyMapping(ForeignKeyMapping edgeMapping) {
-        String call = """
-                CALL apoc.periodic.iterate(
-                'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
-                "MATCH
-                    (a:%s),
-                    (b:%s)
-                WHERE
-                """.formatted(
-                    postgresHost,
-                    postgresDB,
-                    postgresUser,
-                    postgresPassword,
-                    edgeMapping.getForeignKeyTable(),
-                    edgeMapping.getFromNode(),
-                    edgeMapping.getToNode()
-                );
-        StringBuilder callBuilder = new StringBuilder(call);
-
         String foreignKeyTable = edgeMapping.getForeignKeyTable();
         String fromTable = edgeMapping.getFromTable();
         String toTable = edgeMapping.getToTable();
 
-        List<FKColumnInfo> foreignKeys = schemaMetaData.getForeignKeyColumnsForTable(
+        List<ForeignKeyInfo> foreignKeys = schemaMetaData.getForeignKeyInfoForTable(
                 foreignKeyTable,
                 foreignKeyTable.equals(toTable) ? fromTable : toTable
         );
-        for (FKColumnInfo foreignKey : foreignKeys){
-            if (foreignKey.tableName().equals(edgeMapping.getFromTable())) {
-                callBuilder.append(" b.__%s = row.%s AND".formatted(
-                        foreignKey.referencedColumnName(),
-                        foreignKey.columnName()
-                ));
-            } else {
-                callBuilder.append(" a.__%s = row.%s AND".formatted(
-                        foreignKey.referencedColumnName(),
-                        foreignKey.columnName()
-                ));
-            }
-        }
 
-        List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(edgeMapping.getForeignKeyTable());
+        String loadJdbcCall = "CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row"
+                .formatted(postgresHost,
+                        postgresDB,
+                        postgresUser,
+                        postgresPassword,
+                        foreignKeyTable);
+
+        StringBuilder foreignKeyClause = new StringBuilder();
+        for (ForeignKeyInfo foreignKey : foreignKeys){
+            foreignKeyClause.append(" %s.__%s = row.%s AND".formatted(
+                    foreignKey.tableName().equals(fromTable) ? "b" : "a",
+                    foreignKey.referencedColumnName(),
+                    foreignKey.columnName()
+            ));
+        }
+        foreignKeyClause.setLength(foreignKeyClause.length() - 3); // delete trailing AND
+
+        StringBuilder primaryKeyClause = new StringBuilder();
+        List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(foreignKeyTable);
         for (ColumnInfo primaryKeyColumn : primaryKeyColumns) {
-            if (edgeMapping.getForeignKeyTable().equals(edgeMapping.getFromTable())) {
-                callBuilder.append(" a.__%s = row.%s AND".formatted(
-                        primaryKeyColumn.columnName,
-                        primaryKeyColumn.columnName
-                ));
-            } else {
-                callBuilder.append(" b.__%s = row.%s AND".formatted(
-                        primaryKeyColumn.columnName,
-                        primaryKeyColumn.columnName
-                ));
-            }
+            primaryKeyClause.append(" %s.__%s = row.%s AND".formatted(
+                    foreignKeyTable.equals(fromTable) ? "a" : "b",
+                    primaryKeyColumn.columnName,
+                    primaryKeyColumn.columnName
+            ));
         }
+        primaryKeyClause.setLength(primaryKeyClause.length() - 3); // delete trailing AND
 
+        String tableNameClause = " a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+                fromTable,
+                toTable
+        );
 
-        callBuilder.append(" a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
-                edgeMapping.getFromTable(),
-                edgeMapping.getToTable()
-        ));
-        callBuilder.append(" CREATE (a)-[r:%s]->(b)".formatted(edgeMapping.getEdgeLabel()));
-        callBuilder.append("""
-                ", {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
-                """);
-
-        this.execute(callBuilder.toString());
-    }
-
-    private void createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
         String call = """
                 CALL apoc.periodic.iterate(
-                'CALL apoc.load.jdbc("jdbc:postgresql://%s/%s?user=%s&password=%s","%s") YIELD row',
+                '%s',
                 "MATCH
                     (a:%s),
                     (b:%s)
-                WHERE
+                WHERE %s AND %s AND %s
+                CREATE (a)-[r:%s]->(b)",
+                {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
                 """.formatted(
-                postgresHost,
-                postgresDB,
-                postgresUser,
-                postgresPassword,
-                edgeMapping.getJoinTable(),
-                edgeMapping.getFromNode(),
-                edgeMapping.getToNode()
-        );
-        StringBuilder callBuilder = new StringBuilder(call);
+                    loadJdbcCall,
+                    edgeMapping.getFromNode(),
+                    edgeMapping.getToNode(),
+                    foreignKeyClause.toString(),
+                    primaryKeyClause.toString(),
+                    tableNameClause,
+                    edgeMapping.getEdgeLabel()
+                );
 
-        List<FKColumnInfo> fromTableForeignKeys = schemaMetaData.getForeignKeyColumnsForTable(
+        this.execute(call);
+    }
+
+    private void createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
+        String loadJdbcCall = "CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row"
+                .formatted(postgresHost,
+                        postgresDB,
+                        postgresUser,
+                        postgresPassword,
+                        edgeMapping.getJoinTable());
+
+        List<ForeignKeyInfo> fromTableForeignKeys = schemaMetaData.getForeignKeyInfoForTable(
                 edgeMapping.getJoinTable(),
                 edgeMapping.getFromTable()
         );
-        List<FKColumnInfo> toTableForeignKeys = schemaMetaData.getForeignKeyColumnsForTable(
+
+        List<ForeignKeyInfo> toTableForeignKeys = schemaMetaData.getForeignKeyInfoForTable(
                 edgeMapping.getJoinTable(),
                 edgeMapping.getToTable()
         );
 
+        StringBuilder fromTableForeignKeyClause = new StringBuilder();
         fromTableForeignKeys.forEach(foreignKey -> {
-            callBuilder.append(" a.__%s = row.%s AND".formatted(
+            fromTableForeignKeyClause.append(" a.__%s = row.%s AND".formatted(
                     foreignKey.referencedColumnName(),
                     foreignKey.columnName()
             ));
         });
+        fromTableForeignKeyClause.setLength(fromTableForeignKeyClause.length() - 3);
 
+        StringBuilder toTableForeignKeyClause = new StringBuilder();
         toTableForeignKeys.forEach(foreignKey -> {
-            callBuilder.append(" b.__%s = row.%s AND".formatted(
+            toTableForeignKeyClause.append(" b.__%s = row.%s AND".formatted(
                     foreignKey.referencedColumnName(),
                     foreignKey.columnName()
             ));
         });
+        toTableForeignKeyClause.setLength(toTableForeignKeyClause.length() - 3);
 
-        callBuilder.append(" a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+        String tableNameClause = " a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
                 edgeMapping.getFromTable(),
                 edgeMapping.getToTable()
-        ));
-        callBuilder.append(" CREATE (a)-[r:%s{".formatted(edgeMapping.getEdgeLabel()));
+        );
+
+        StringBuilder mappedColumns = new StringBuilder();
         edgeMapping.getMappedColumns().forEach((column, attribute) -> {
-            callBuilder.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
+            mappedColumns.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
         });
         if (edgeMapping.getMappedColumns().size() != 0)
-            callBuilder.setLength(callBuilder.length() - 1); // delete trailing comma
-        callBuilder.append("}]->(b)");
-        callBuilder.append("""
-                ", {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
-                """);
+            mappedColumns.setLength(mappedColumns.length() - 1); // delete trailing comma
 
-        this.execute(callBuilder.toString());
+        String call = """
+                CALL apoc.periodic.iterate(
+                '%s',
+                "MATCH
+                    (a:%s),
+                    (b:%s)
+                WHERE %s AND %s AND %s
+                CREATE (a)-[r:%s{%s}]->(b)",
+                {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
+                """.formatted(
+                loadJdbcCall,
+                edgeMapping.getFromNode(),
+                edgeMapping.getToNode(),
+                fromTableForeignKeyClause.toString(),
+                toTableForeignKeyClause.toString(),
+                tableNameClause,
+                edgeMapping.getEdgeLabel(),
+                mappedColumns.toString()
+        );
+
+        this.execute(call);
     }
 
     private void execute(String query) {
@@ -251,7 +262,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
             });
         }
         long end = System.currentTimeMillis();
-        System.out.println("Time taken: %s s".formatted((end - start) / 1000));
+        System.out.printf("Time taken: %s s%n", (end - start) / 1000);
     }
 
     private void createIndex(SQLNodeMapping nodeMapping) {
