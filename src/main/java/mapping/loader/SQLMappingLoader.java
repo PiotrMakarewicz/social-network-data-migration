@@ -45,7 +45,7 @@ public class SQLMappingLoader implements MappingLoader {
             if (edge.getEdgeLabel() == null
                     || edge.getFrom() == null
                     || edge.getTo() == null
-                    || (edge.getForeignKey() == null
+                    || (edge.getForeignKeyTable() == null
                         && edge.getJoinTable() == null)
             ) {
                 throw new RuntimeException("Invalid schema mapping JSON file");
@@ -68,6 +68,12 @@ public class SQLMappingLoader implements MappingLoader {
                 );
             }
             else {
+                if (!edge.getForeignKeyTable().equals(edge.getFrom())
+                    && !edge.getForeignKeyTable().equals(edge.getTo())) {
+                    throw new RuntimeException("Invalid schema mapping JSON file: foreign key must be part" +
+                            "of %s or %s table".formatted(edge.getFrom(), edge.getTo()));
+                }
+
                 mapping.addEdgeMapping(
                         new ForeignKeyMapping(
                                 edge.getEdgeLabel(),
@@ -75,7 +81,7 @@ public class SQLMappingLoader implements MappingLoader {
                                 mapping.getNodeLabelForTableName(edge.getTo()),
                                 edge.getFrom(),
                                 edge.getTo(),
-                                edge.getForeignKey()
+                                edge.getForeignKeyTable()
                         )
                 );
             }
