@@ -45,7 +45,7 @@ PostgreSQL data import - Huffington Post
   sudo -u postgres pg_restore -d huffington < [filename]
 
 
-Neo4j database
+Neo4j database - local installation 
 ----------------
 Add repository:
 ::
@@ -65,6 +65,21 @@ Start systemd service:
 ::
   systemctl start neo4j
 
+Neo4j database - in a docker container 
+--------------------------------------
+Instead of installing Neo4j locally, you may run it in a docker container
+::
+
+  docker run \
+    --network=host \
+    -v $PWD/data:/data -v $PWD/plugins:/plugins \
+    -e NEO4J_apoc_export_file_enabled=true \
+    -e NEO4J_apoc_import_file_enabled=true \
+    -e NEO4J_apoc_import_file_use__neo4j__config=true \
+     neo4j
+
+Neo4j authentication setup
+---------------------------
 
 When first starting a Neo4j DBMS, there is always a single default user neo4j with administrative privileges. To set an initial password for default user execute the following command:
 ::

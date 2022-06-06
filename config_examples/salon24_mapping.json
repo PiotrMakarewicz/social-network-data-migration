@@ -1,0 +1,65 @@
+{
+  "nodes": [
+    {
+      "sqlTableName": "authors",
+      "nodeLabel": "Person",
+      "mappedColumns": {
+        "id": "id",
+        "bloglink": "blog_url",
+        "name": "name"
+      }
+    },
+    {
+      "sqlTableName": "posts",
+      "nodeLabel": "Post",
+      "mappedColumns": {
+        "id": "id",
+        "categoryno": "categoryno",
+        "content": "content",
+        "date": "timestamp",
+        "link": "url",
+        "title": "title"
+      }
+    },
+    {
+      "sqlTableName": "comments",
+      "nodeLabel": "Comment",
+      "mappedColumns": {
+        "id": "id",
+        "content": "content",
+        "date": "timestamp",
+        "salon_id": "salon_id",
+        "title": "title"
+      }
+    },
+    {
+      "sqlTableName": "tags",
+      "nodeLabel": "Tag",
+      "mappedColumns": {
+        "name": "tag_name",
+        "id": "id"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edgeLabel": "IsAuthorOf",
+      "foreignKey": "posts.author_id",
+      "from": "authors",
+      "to": "posts"
+    },
+    {
+      "edgeLabel": "IsParentCommentOf",
+      "foreignKey": "comments.parentcomment_id",
+      "from": "comments",
+      "to": "comments"
+    },
+    {
+      "edgeLabel": "IsTaggedWith",
+      "joinTable": "posts_tags",
+      "from": "posts",
+      "to": "tags",
+      "mappedColumns": {}
+    }
+  ]
+}
