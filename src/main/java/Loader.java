@@ -11,7 +11,10 @@ public class Loader {
         }
         try (Migrator migrator = new PostgresMigrator(args[0])){
             SQLMappingLoader mappingLoader = new SQLMappingLoader();
+            long start = System.currentTimeMillis();
             migrator.migrateData(mappingLoader.load(args[1]));
+            long end = System.currentTimeMillis();
+            System.out.printf("Time taken: %s ms", end - start);
         }
     }
 }

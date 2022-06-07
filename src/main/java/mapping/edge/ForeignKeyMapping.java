@@ -1,22 +1,14 @@
 package mapping.edge;
 
 public class ForeignKeyMapping extends SQLEdgeMapping {
-    private final String foreignKey;
+    private final String foreignKeyTable;
 
-    public ForeignKeyMapping(String edgeLabel, String fromNode, String toNode, String fromTable, String toTable, String foreignKey) {
+    public ForeignKeyMapping(String edgeLabel, String fromNode, String toNode, String fromTable, String toTable, String foreignKeyTable) {
         super(edgeLabel, fromNode, toNode, fromTable, toTable);
-        this.foreignKey = foreignKey;
+        this.foreignKeyTable = foreignKeyTable;
     }
 
-    public String getForeignKey() {
-        return foreignKey;
-    }
-
-    public String getTableFromForeignKey() {
-        return this.foreignKey.split("\\.")[0];
-    }
-
-    public String getColumnFromForeignKey() {
-        return this.foreignKey.split("\\.")[1];
+    public String getForeignKeyTable() {
+        return foreignKeyTable;
     }
 }

@@ -4,7 +4,7 @@ import java.util.Map;
 
 public class EdgeJson {
     private String edgeLabel;
-    private String foreignKey;
+    private String foreignKeyTable;
     private String from;
     private String to;
     private String joinTable;
@@ -14,8 +14,8 @@ public class EdgeJson {
         return edgeLabel;
     }
 
-    public String getForeignKey() {
-        return foreignKey;
+    public String getForeignKeyTable() {
+        return foreignKeyTable;
     }
 
     public String getFrom() {
@@ -38,7 +38,7 @@ public class EdgeJson {
     public String toString() {
         return "Edge{" + "\n" +
                 "edgeLabel='" + edgeLabel + '\'' + ",\n" +
-                "foreignKey='" + foreignKey + '\'' + ",\n" +
+                "foreignKeyTable='" + foreignKeyTable + '\'' + ",\n" +
                 "from='" + from + '\'' + ",\n" +
                 "to='" + to + '\'' + ",\n" +
                 "joinTable='" + joinTable + '\'' + ",\n" +
