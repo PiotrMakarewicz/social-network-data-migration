@@ -58,8 +58,8 @@ public class SQLMappingLoader implements MappingLoader {
                 mapping.addEdgeMapping(
                         new JoinTableMapping(
                                 edge.getEdgeLabel(),
-                                mapping.getNodeLabelForTableName(edge.getFrom()),
-                                mapping.getNodeLabelForTableName(edge.getTo()),
+                                mapping.getNodeLabelForTableName(edge.getFrom()).get(),
+                                mapping.getNodeLabelForTableName(edge.getTo()).get(),
                                 edge.getFrom(),
                                 edge.getTo(),
                                 edge.getJoinTable(),
@@ -77,8 +77,8 @@ public class SQLMappingLoader implements MappingLoader {
                 mapping.addEdgeMapping(
                         new ForeignKeyMapping(
                                 edge.getEdgeLabel(),
-                                mapping.getNodeLabelForTableName(edge.getFrom()),
-                                mapping.getNodeLabelForTableName(edge.getTo()),
+                                mapping.getNodeLabelForTableName(edge.getFrom()).get(),
+                                mapping.getNodeLabelForTableName(edge.getTo()).get(),
                                 edge.getFrom(),
                                 edge.getTo(),
                                 edge.getForeignKeyTable()
