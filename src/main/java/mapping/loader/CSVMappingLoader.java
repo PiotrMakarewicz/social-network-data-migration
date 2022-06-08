@@ -25,7 +25,7 @@ public class CSVMappingLoader  {
     protected CSVMappingJsonSchema parseJson(String filename) throws FileNotFoundException {
         Gson gson = new Gson();
         JsonReader reader = new JsonReader(new FileReader(filename));
-        return gson.fromJson(reader, SQLMappingJsonSchema.class);
+        return gson.fromJson(reader, CSVMappingJsonSchema.class);
     }
     protected SchemaMapping convertToSchemaMapping(CSVMappingJsonSchema jsonSchema) {
         SchemaMapping mapping = new CSVSchemaMapping();
