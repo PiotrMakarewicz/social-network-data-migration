@@ -39,7 +39,7 @@ public class SQLNodeMapping extends NodeMapping {
     public String toString() {
         String header =  super.toString() +
                 """
-                Table name:       %s
+                Table name:        %s
                 Mapped columns:
                 """.formatted(sqlTableName);
         StringBuilder builder = new StringBuilder(header);
