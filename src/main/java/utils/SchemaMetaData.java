@@ -1,5 +1,10 @@
 package utils;
 
+import utils.info.ColumnInfo;
+import utils.info.DatabaseInfo;
+import utils.info.ForeignKeyInfo;
+import utils.info.TableInfo;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
@@ -8,104 +13,6 @@ import java.util.*;
 public class SchemaMetaData implements AutoCloseable {
     private final Connection connection;
 
-    public class ColumnInfo {
-        public String columnName;
-        public String tableName;
-        public String type;
-
-        public ColumnInfo(String columnName, String tableName, String type) {
-            this.columnName = columnName;
-            this.tableName = tableName;
-            this.type = type;
-        }
-
-        @Override
-        public String toString() {
-            return "ColumnInfo{" +
-                    "columnName='" + columnName + '\'' +
-                    ", tableName='" + tableName + '\'' +
-                    ", type='" + type + '\'' +
-                    '}';
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ColumnInfo that = (ColumnInfo) o;
-            return columnName.equals(that.columnName) && tableName.equals(that.tableName) && type.equals(that.type);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(columnName, tableName, type);
-        }
-    }
-
-    public class ForeignKeyInfo {
-        public ColumnInfo foreignKeyColumn;
-        public ColumnInfo referencedColumn;
-        public ForeignKeyInfo(ColumnInfo foreignKeyColumn,
-                          ColumnInfo referencedColumn) {
-            this.foreignKeyColumn = foreignKeyColumn;
-            this.referencedColumn = referencedColumn;
-        }
-
-        @Override
-        public String toString() {
-            return "FKColumnInfo{" +
-                    "foreignKeyColumn=" + foreignKeyColumn +
-                    ", referencedColumn=" + referencedColumn +
-                    '}';
-        }
-
-        public String columnName() {
-            return foreignKeyColumn.columnName;
-        }
-
-        public String tableName() {
-            return foreignKeyColumn.tableName;
-        }
-
-        public String referencedColumnName() {
-            return referencedColumn.columnName;
-        }
-        public String referencedTableName() {
-            return referencedColumn.tableName;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ForeignKeyInfo that = (ForeignKeyInfo) o;
-            return foreignKeyColumn.equals(that.foreignKeyColumn) && referencedColumn.equals(that.referencedColumn);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(foreignKeyColumn, referencedColumn);
-        }
-    }
-
-    public class TableInfo {
-        public List<ColumnInfo> columns;
-        public List<ForeignKeyInfo> foreignKeyColumns;
-        public String tableName;
-
-        public TableInfo(String tableName, List<ColumnInfo> columns, List<ForeignKeyInfo> foreignKeyColumns) {
-            this.tableName = tableName;
-            this.columns = columns;
-            this.foreignKeyColumns = foreignKeyColumns;
-        }
-
-        public Optional<ForeignKeyInfo> getForeignKeyInfoForColumn(ColumnInfo column) {
-            return foreignKeyColumns
-                    .stream()
-                    .filter(foreignKeyInfo -> foreignKeyInfo.foreignKeyColumn.equals(column))
-                    .findFirst();
-        }
-    }
 
     public SchemaMetaData(String postgresHost, String postgresDB, String postgresUser, String postgresPassword) {
         try {
@@ -271,8 +178,11 @@ public class SchemaMetaData implements AutoCloseable {
         }
     }
 
+    public DatabaseInfo getDatabaseInfo() {
+        return new DatabaseInfo(getTables());
+    }
 
-    public List<TableInfo> getTables() {
+    private List<TableInfo> getTables() {
         List<TableInfo> tables = new ArrayList<>();
         String sql = """
                 SELECT table_name FROM information_schema.tables t

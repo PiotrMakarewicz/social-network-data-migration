@@ -11,8 +11,8 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import utils.SchemaMetaData;
-import utils.SchemaMetaData.ForeignKeyInfo;
-import utils.SchemaMetaData.ColumnInfo;
+import utils.info.ColumnInfo;
+import utils.info.ForeignKeyInfo;
 
 import java.io.FileInputStream;
 import java.io.IOException;

@@ -7,9 +7,8 @@ import mapping.edge.JoinTableMapping;
 import mapping.edge.SQLEdgeMapping;
 import mapping.node.SQLNodeMapping;
 import utils.SchemaMetaData;
-import utils.SchemaMetaData.TableInfo;
-import utils.SchemaMetaData.ColumnInfo;
-import utils.SchemaMetaData.ForeignKeyInfo;
+import utils.info.DatabaseInfo;
+import utils.info.TableInfo;
 
 import java.io.*;
 import java.util.*;
@@ -21,12 +20,12 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
     private int nodeCounter = 0;
     private int edgeCounter = 0;
     private final Console in = System.console();
-    private final List<TableInfo> tables;
+    private final DatabaseInfo databaseInfo;
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
     public InteractiveSQLMappingLoader(String configPath) {
         try (SchemaMetaData schemaMetaData = new SchemaMetaData(configPath)) {
-            this.tables = schemaMetaData.getTables();
+            this.databaseInfo = schemaMetaData.getDatabaseInfo();
         } catch (Exception e) {
             throw new RuntimeException("Couldn't open or close connection with database: " + e.getMessage());
         }
@@ -57,10 +56,10 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 String mappingName = command.split("\\s")[3];
                 deleteEdgeMapping(mappingName);
             } else if (command.matches("show table")) {
-                showTables();
+                System.out.println(databaseInfo);
             } else if (command.matches("show table \\w+")) {
                 String tableName = command.split("\\s")[2];
-                showTable(tableName);
+                System.out.println(databaseInfo.tableToString(tableName));
             } else if (command.matches("list tables")) {
                 listTables();
             } else if (command.matches("quit")) {
@@ -116,13 +115,13 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 else
                     continue;
             }
-            if (!isTableCorrect(table)) {
+            if (!databaseInfo.hasTable(table)) {
                 System.out.println("Incorrect table name");
             } else {
                 break;
             }
         } while (true);
-        showTable(table);
+        System.out.println(databaseInfo.tableToString(table));
         Map<String, String> columnMappings = createColumnMappings(table);
         SQLNodeMapping nodeMapping = new SQLNodeMapping(node, table, columnMappings);
         if (questionYesNo("Save mapping?") && !nodeMappings.containsValue(nodeMapping)) {
@@ -145,7 +144,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 else
                     continue;
             }
-            if (!isTableCorrect(fromTable) || schemaMapping.getNodeLabelForTableName(fromTable).isEmpty()) {
+            if (!databaseInfo.hasTable(fromTable) || schemaMapping.getNodeLabelForTableName(fromTable).isEmpty()) {
                 System.out.println("Incorrect table name.");
             } else {
                 break;
@@ -162,7 +161,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 else
                     continue;
             }
-            if (!isTableCorrect(toTable) || schemaMapping.getNodeLabelForTableName(toTable).isEmpty()) {
+            if (!databaseInfo.hasTable(toTable) || schemaMapping.getNodeLabelForTableName(toTable).isEmpty()) {
                 System.out.println("Incorrect table name.");
             } else {
                 break;
@@ -202,7 +201,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 }
                 if (!(foreignKeyTable.equals(fromTable) || foreignKeyTable.equals(toTable))) {
                     System.out.println("Foreign key table must be one of earlier chosen tables.");
-                } else if (!checkForeignKeyExistence(foreignKeyTable,
+                } else if (!databaseInfo.hasForeignKey(foreignKeyTable,
                         foreignKeyTable.equals(fromTable) ? toTable : fromTable)){
                     System.out.println("Table doesn't have required foreign key.");
                 } else {
@@ -229,16 +228,16 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                     else
                         continue;
                 }
-                if (!isTableCorrect(joinTable)) {
+                if (!databaseInfo.hasTable(joinTable)) {
                     System.out.println("Incorrect table name");
-                } else if (!checkForeignKeyExistence(joinTable, fromTable)
-                        || !checkForeignKeyExistence(joinTable, toTable)) {
+                } else if (!databaseInfo.hasForeignKey(joinTable, fromTable)
+                        || !databaseInfo.hasForeignKey(joinTable, toTable)) {
                     System.out.println("Table doesn't have required foreign key.");
                 } else {
                     break;
                 }
             } while (true);
-            showTable(joinTable);
+            System.out.println(databaseInfo.tableToString(joinTable));
             Map<String, String> columnMappings = createColumnMappings(joinTable);
             edgeMapping = new JoinTableMapping(
                     name,
@@ -280,70 +279,10 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
         schemaMapping.getEdgeMappings().remove(edgeMapping);
     }
 
-    private void showTables() {
-        tables.forEach(table -> showTable(table.tableName));
-    }
-    private void showTable(String tableName){
-        TableInfo table = tables.stream()
-                .filter(tableInfo -> tableInfo.tableName.equals(tableName))
-                .findFirst()
-                .orElse(null);
-        if (table == null) {
-            System.out.println("No such table");
-            return;
-        }
-        int rowLen = maxRowLength();
-        String roof = "-".repeat(rowLen);
-        String namePaddingLeft = " ".repeat((rowLen - tableName.length() - "|".length() * 2) / 2);
-        String namePaddingRight = namePaddingLeft;
-        if ((rowLen - tableName.length()) % 2 == 1)
-            namePaddingRight += " ";
 
-        StringBuilder tableBuilder = new StringBuilder();
-
-        String header = """
-                
-                %s
-                |%s%s%s|
-                %s
-                """.formatted(roof, namePaddingLeft, tableName, namePaddingRight, roof);
-        tableBuilder.append(header);
-
-        for (ColumnInfo column : table.columns) {
-
-            String columnName = column.columnName;
-            String columnType = column.type;
-
-            String columnNamePadding = " ".repeat((maxColumnNameLength() - columnName.length()));
-            String columnTypePadding = " ".repeat((maxColumnTypeLength() - columnType.length()));
-
-            String foreignColumnName = "";
-            if (table.getForeignKeyInfoForColumn(column).isPresent()) {
-                ForeignKeyInfo foreignKeyInfo = table.getForeignKeyInfoForColumn(column).get();
-                foreignColumnName = foreignKeyInfo.referencedTableName() + "." + foreignKeyInfo.referencedColumnName();
-            }
-            String foreignColumnPadding = " ".repeat((maxForeignColumnLength() - foreignColumnName.length()));
-
-            String row = """
-                    | %s%s | %s%s | %s%s |
-                    """.formatted(
-                        column.columnName,
-                        columnNamePadding,
-                        column.type,
-                        columnTypePadding,
-                        foreignColumnName,
-                        foreignColumnPadding
-                    );
-            tableBuilder.append(row);
-        }
-        tableBuilder.append(roof);
-        tableBuilder.append("\n");
-        System.out.print(tableBuilder);
-        System.out.flush();
-    }
     private void listTables(){
         System.out.println();
-        for (TableInfo table : tables) {
+        for (TableInfo table : databaseInfo.tables) {
             System.out.println(table.tableName);
         }
         System.out.flush();
@@ -367,7 +306,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                             continue;
                         }
                     }
-                    if (!isColumnCorrect(table, column)) {
+                    if (!databaseInfo.hasColumn(table, column)) {
                         System.out.println("Incorrect column name.");
                     } else {
                         break;
@@ -402,30 +341,6 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
         return columnMappings;
     }
 
-    private boolean isTableCorrect(String tableName) {
-        return tables
-                .stream()
-                .map(tableInfo -> tableInfo.tableName)
-                .anyMatch(table ->table.equals(tableName));
-    }
-
-    private boolean checkForeignKeyExistence(String fromTable, String toTable) {
-        return tables
-                .stream()
-                .filter(tableInfo -> tableInfo.tableName.equals(fromTable))
-                .flatMap(tableInfo -> tableInfo.foreignKeyColumns.stream())
-                .anyMatch(foreignKeyInfo -> foreignKeyInfo.referencedTableName().equals(toTable));
-    }
-
-    private boolean isColumnCorrect(String tableName, String columnName) {
-        return tables
-                .stream()
-                .filter(tableInfo -> tableInfo.tableName.equals(tableName))
-                .flatMap(tableInfo -> tableInfo.columns.stream())
-                .map(columnInfo -> columnInfo.columnName)
-                .anyMatch(c -> c.equals(columnName));
-    }
-
     private boolean questionYesNo(String prompt) throws IOException {
         while (true) {
             System.out.println(prompt + " (y/n)");
@@ -438,45 +353,5 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
             if (stop.toLowerCase(Locale.ROOT).equals("n"))
                 return false;
         }
-    }
-
-    private int maxRowLength() {
-        return "| ".length()
-                + maxColumnNameLength()
-                + " | ".length()
-                + maxColumnTypeLength()
-                + " | ".length()
-                + maxForeignColumnLength()
-                + " |".length();
-    }
-
-    private int maxColumnNameLength() {
-        return tables
-                .stream()
-                .flatMap(tableInfo -> tableInfo.columns.stream())
-                .map(columnInfo -> columnInfo.columnName.length())
-                .max((l1, l2) -> l1.equals(l2) ? 0 : l1 < l2 ? -1 : 1)
-                .get();
-    }
-
-    private int maxColumnTypeLength() {
-        return tables.
-                stream()
-                .flatMap(tableInfo -> tableInfo.columns.stream())
-                .map(columnInfo -> columnInfo.type.length())
-                .max((l1, l2) -> l1.equals(l2) ? 0 : l1 < l2 ? -1 : 1)
-                .get();
-    }
-
-    private int maxForeignColumnLength() {
-        return tables
-                .stream()
-                .flatMap(tableInfo -> tableInfo.foreignKeyColumns.stream())
-                .map(columnInfo -> {
-                    return columnInfo.referencedTableName().length() + ".".length()
-                    + columnInfo.referencedTableName().length();
-                })
-                .max((l1, l2) -> l1.equals(l2) ? 0 : l1 < l2 ? -1 : 1)
-                .get();
     }
 }

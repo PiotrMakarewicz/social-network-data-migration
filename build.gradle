@@ -25,12 +25,12 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes "Main-Class": "Loader"
+        attributes "Main-Class": "Application"
     }
 
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
-    archiveFileName = "Loader"
+    archiveFileName = "Application"
 }
