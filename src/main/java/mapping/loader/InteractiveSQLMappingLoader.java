@@ -103,8 +103,18 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
         System.out.println(help);
     }
     private void addNodeMapping() throws IOException {
-        System.out.print("Node label: ");
-        String node = in.readLine();
+        String node;
+        do {
+            System.out.print("Node label: ");
+            node = in.readLine();
+            if (node == null) {
+                if (questionYesNo("Stop mapping creation?"))
+                    return;
+            } else {
+                break;
+            }
+        } while (true);
+
         String table;
         do {
             System.out.print("Table name: ");
@@ -131,8 +141,17 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
         }
     }
     private void addEdgeMapping() throws IOException {
-        System.out.println("Edge label: ");
-        String name = in.readLine();
+        String name;
+        do {
+            System.out.print("Edge label: ");
+            name = in.readLine();
+            if (name == null) {
+                if (questionYesNo("Stop mapping creation?"))
+                    return;
+            } else {
+                break;
+            }
+        } while (true);
 
         String fromTable;
         do {
