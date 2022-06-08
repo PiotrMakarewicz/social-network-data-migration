@@ -20,7 +20,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
     private final Map<String, SQLEdgeMapping> edgeMappings = new HashMap<>();
     private int nodeCounter = 0;
     private int edgeCounter = 0;
-    private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+    private final Console in = System.console();
     private final List<TableInfo> tables;
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
@@ -38,9 +38,9 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
             System.out.print("=> ");
             String command = in.readLine();
             if (command == null) {
+                System.out.println("Incorrect command");
                 showHelp();
-            }
-            if (command.matches("help")) {
+            } else if (command.matches("help")) {
                 showHelp();
             } else if (command.matches("add node mapping")) {
                 addNodeMapping();
