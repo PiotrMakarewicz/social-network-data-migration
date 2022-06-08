@@ -2,7 +2,7 @@ package mapping.loader.json;
 
 import java.util.Map;
 
-public class Node {
+public class NodeJson {
     private String sqlTableName;
     private String nodeLabel;
     private Map<String, String> mappedColumns;

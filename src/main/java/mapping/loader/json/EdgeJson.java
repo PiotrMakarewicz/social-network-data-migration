@@ -2,7 +2,7 @@ package mapping.loader.json;
 
 import java.util.Map;
 
-public class Edge {
+public class EdgeJson {
     private String edgeLabel;
     private String foreignKeyTable;
     private String from;
