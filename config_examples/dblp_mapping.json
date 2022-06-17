@@ -5,10 +5,8 @@
       "nodeLabel": "Author",
       "xpath": "/dblp/article/author",
       "innerTextMappedTo": "name",
-      "mappedAttributes": {
-
-        },
-      "mappedChildElements": []
+      "mappedAttributes": {},
+      "mappedChildElements": {}
     },
     {
       "nodeMappingId": "nm_publication",
@@ -30,7 +28,6 @@
       "directed": false,
       "firstNodeMappingId": "nm_author",
       "secondNodeMappingId": "nm_author",
-
       "mappedAttributes": {
         "mdate": "date"
       },
@@ -43,7 +40,6 @@
       "directed": true,
       "firstNodeMappingId": "nm_author",
       "secondNodeMappingId": "nm_publication",
-
       "mappedAttributes": {},
       "mappedChildElements": {}
     }
