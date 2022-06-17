@@ -27,4 +27,14 @@ public abstract class SchemaMapping {
     public Collection<EdgeMapping> getEdgeMappings() {
         return edgeMappings;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Node mappings:\n");
+        nodeMappings.forEach(nodeMapping -> builder.append(nodeMapping.toString()).append("\n"));
+        builder.append("\nEdge mappings:\n");
+        edgeMappings.forEach(edgeMapping -> builder.append(edgeMapping.toString()).append("\n"));
+        return builder.toString();
+    }
 }
