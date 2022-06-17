@@ -14,7 +14,7 @@ public class DatabaseInfo {
     @Override
     public String toString() {
         List<String> tableStrings = new ArrayList<>();
-        tables.forEach(table -> tableStrings.add(showTable(table)));
+        tables.forEach(table -> tableStrings.add(getTableInfoStr(table)));
         return String.join("\n", tableStrings);
     }
 
@@ -26,7 +26,7 @@ public class DatabaseInfo {
                         .findFirst();
         if (tableInfo.isEmpty())
             return "No such table";
-        return showTable(tableInfo.get());
+        return getTableInfoStr(tableInfo.get());
     }
 
     public boolean hasTable(String tableName) {
@@ -53,7 +53,7 @@ public class DatabaseInfo {
                 .anyMatch(c -> c.equals(columnName));
     }
 
-    private String showTable(TableInfo table){
+    private String getTableInfoStr(TableInfo table){
         StringBuilder stringBuilder = new StringBuilder();
         String tableName = table.tableName;
         int rowLen = maxRowLength();

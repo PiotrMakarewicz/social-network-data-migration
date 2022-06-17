@@ -27,6 +27,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
         try (SchemaMetaData schemaMetaData = new SchemaMetaData(configPath)) {
             this.databaseInfo = schemaMetaData.getDatabaseInfo();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Couldn't open or close connection with database: " + e.getMessage());
         }
     }
@@ -126,7 +127,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                     continue;
             }
             if (!databaseInfo.hasTable(table)) {
-                System.out.println("Incorrect table name");
+                System.out.printf("Table %s not found in the database.", table);
             } else {
                 break;
             }
@@ -163,8 +164,10 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 else
                     continue;
             }
-            if (!databaseInfo.hasTable(fromTable) || schemaMapping.getNodeLabelForTableName(fromTable).isEmpty()) {
-                System.out.println("Incorrect table name.");
+            if (!databaseInfo.hasTable(fromTable)) {
+                System.out.printf("Table %s not found in the database.", fromTable);
+            } else if (schemaMapping.getNodeLabelForTableName(fromTable).isEmpty()){
+                System.out.printf("Table %s exists in the database, but there is no node mapping for it.", fromTable);
             } else {
                 break;
             }
@@ -180,8 +183,10 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                 else
                     continue;
             }
-            if (!databaseInfo.hasTable(toTable) || schemaMapping.getNodeLabelForTableName(toTable).isEmpty()) {
-                System.out.println("Incorrect table name.");
+            if (!databaseInfo.hasTable(toTable)) {
+                System.out.printf("Table %s not found in the database.", toTable);
+            } else if (schemaMapping.getNodeLabelForTableName(toTable).isEmpty()){
+                System.out.printf("Table %s exists in the database, but there is no node mapping for it.", toTable);
             } else {
                 break;
             }
@@ -277,14 +282,14 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
     private void listNodeMappings(){
         System.out.println();
         for (Map.Entry<String, SQLNodeMapping> entry : nodeMappings.entrySet()) {
-            System.out.println("Mapping name:      %s".formatted(entry.getKey()));
+            System.out.printf("Mapping name:      %s%n", entry.getKey());
             System.out.println(entry.getValue());
         }
     }
     private void listEdgeMappings(){
         System.out.println();
         for (Map.Entry<String, SQLEdgeMapping> entry : edgeMappings.entrySet()) {
-            System.out.println("Mapping name:      %s".formatted(entry.getKey()));
+            System.out.printf("Mapping name:      %s%n", entry.getKey());
             System.out.println(entry.getValue());
         }
     }
@@ -360,7 +365,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
         return columnMappings;
     }
 
-    private boolean questionYesNo(String prompt) throws IOException {
+    private boolean questionYesNo(String prompt){
         while (true) {
             System.out.println(prompt + " (y/n)");
             System.out.flush();
