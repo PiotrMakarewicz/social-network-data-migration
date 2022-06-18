@@ -3,22 +3,22 @@ package mapping.node;
 import java.util.Map;
 import java.util.Objects;
 
-public class CSVNodeMapping extends NodeMapping {
-    private final Map<String, String> mappedColumns;
+public class NoHeadersCSVNodeMapping extends NodeMapping{
+    private final Map<Integer, String> mappedColumns;
 
-    public CSVNodeMapping(String nodeLabel, Map<String, String> mappedColumns) {
+    public NoHeadersCSVNodeMapping(String nodeLabel, Map<Integer, String> mappedColumns) {
         super(nodeLabel);
         this.mappedColumns = mappedColumns;
     }
 
-    public Map<String, String> getMappedColumns() {
+    public Map<Integer, String> getMappedColumns() {
         return mappedColumns;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CSVNodeMapping that)) return false;
+        if (!(o instanceof NoHeadersCSVNodeMapping that)) return false;
         if (!super.equals(o)) return false;
         return Objects.equals(mappedColumns, that.mappedColumns);
     }
