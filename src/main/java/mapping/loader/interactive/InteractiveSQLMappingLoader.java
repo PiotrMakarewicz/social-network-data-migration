@@ -1,10 +1,11 @@
-package mapping.loader;
+package mapping.loader.interactive;
 
 import mapping.SQLSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.ForeignKeyMapping;
 import mapping.edge.JoinTableMapping;
 import mapping.edge.SQLEdgeMapping;
+import mapping.loader.MappingLoader;
 import mapping.node.SQLNodeMapping;
 import utils.SchemaMetaData;
 import utils.info.DatabaseInfo;
@@ -13,7 +14,7 @@ import utils.info.TableInfo;
 import java.io.*;
 import java.util.*;
 
-public class InteractiveSQLMappingLoader implements MappingLoader{
+public class InteractiveSQLMappingLoader implements MappingLoader {
 
     private final Map<String, SQLNodeMapping> nodeMappings = new HashMap<>();
     private final Map<String, SQLEdgeMapping> edgeMappings = new HashMap<>();
@@ -154,6 +155,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
             }
         } while (true);
 
+        // TODO wspólna metoda
         String fromTable;
         do {
             System.out.println("Source table: ");
@@ -352,7 +354,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader{
                             continue;
                         }
                     }
-                    if (columnMappings.containsKey(prop)) {
+                    if (columnMappings.containsValue(prop)) {
                         System.out.println("Property name already in use.");
                     } else {
                         break;
