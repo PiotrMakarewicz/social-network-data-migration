@@ -1,0 +1,47 @@
+{
+  "nodes": [
+    {
+      "nodeMappingId": "nm_author",
+      "nodeLabel": "Author",
+      "xpath": "/dblp/article/author",
+      "innerTextMappedTo": "name",
+      "mappedAttributes": {},
+      "mappedChildElements": {}
+    },
+    {
+      "nodeMappingId": "nm_publication",
+      "nodeLabel": "Publication",
+      "xpath": "/dblp/article",
+      "innerTextMappedTo": null,
+      "mappedAttributes": {
+        "publtype": "type"
+      },
+      "mappedChildElements": {
+        "title": "title",
+        "year": "year"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edgeLabel": "CollaboratedWith",
+      "directed": false,
+      "firstNodeMappingId": "nm_author",
+      "secondNodeMappingId": "nm_author",
+      "mappedAttributes": {
+        "mdate": "date"
+      },
+      "mappedChildElements": {
+        "title": "publicationTitle"
+      }
+    },
+    {
+      "edgeLabel": "Wrote",
+      "directed": true,
+      "firstNodeMappingId": "nm_author",
+      "secondNodeMappingId": "nm_publication",
+      "mappedAttributes": {},
+      "mappedChildElements": {}
+    }
+  ]
+}
