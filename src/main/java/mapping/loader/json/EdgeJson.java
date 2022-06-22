@@ -1,6 +1,8 @@
 package mapping.loader.json;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class EdgeJson {
     private String edgeLabel;
@@ -31,7 +33,7 @@ public class EdgeJson {
     }
 
     public Map<String, String> getMappedColumns() {
-        return mappedColumns;
+        return Optional.ofNullable(mappedColumns).orElse(new HashMap<>());
     }
 
     @Override

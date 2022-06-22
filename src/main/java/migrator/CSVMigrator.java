@@ -3,7 +3,9 @@ package migrator;
 import mapping.CSVSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
+import mapping.edge.EdgeMapping;
 import mapping.node.CSVNodeMapping;
+import mapping.node.NodeMapping;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -15,22 +17,27 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
+// Użycie CSVMigratora wymaga wykomentowania linijki dbms.directories.import w neo4j.conf
 public class CSVMigrator implements Migrator, AutoCloseable {
-    String configPath;
-    String dataPath;
-    Driver neo4jDriver;
+    private final String configPath;
+    private final String dataPath;
+    private final boolean withHeaders;
+    private Driver neo4jDriver;
 
-    String fieldTerminator = "\\t";
+    private final String fieldTerminator = "\\t";
 
-    public CSVMigrator(String configPath, String dataPath) throws IOException {
+    public CSVMigrator(String configPath, String dataPath, boolean withHeaders) throws IOException {
         this.configPath = configPath;
-        this.dataPath = dataPath;
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(configPath));
-        String neo4jHost = properties.getProperty("neo4jHost");
-        String neo4jUser = properties.getProperty("neo4jUser");
-        String neo4jPassword = properties.getProperty("neo4jPassword");
-        this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+        this.dataPath = constructNeo4jDataPath(dataPath);
+        this.withHeaders = withHeaders;
+        if (configPath != null) {
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(configPath));
+            String neo4jHost = properties.getProperty("neo4jHost");
+            String neo4jUser = properties.getProperty("neo4jUser");
+            String neo4jPassword = properties.getProperty("neo4jPassword");
+            this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+        }
     }
 
     @Override
@@ -66,12 +73,16 @@ public class CSVMigrator implements Migrator, AutoCloseable {
         this.execute(query);
     }
 
-    private void loadCSV(CSVEdgeMapping csvEdgeMapping, CSVNodeMapping fromNodeMapping, CSVNodeMapping toNodeMapping) {
+    private void loadCSV(EdgeMapping csvEdgeMapping, NodeMapping fromNodeMapping, NodeMapping toNodeMapping) {
+        this.execute(buildLoadCsvQuery(csvEdgeMapping, fromNodeMapping, toNodeMapping));
+    }
+
+    public String buildLoadCsvQuery(EdgeMapping csvEdgeMapping, NodeMapping fromNodeMapping, NodeMapping toNodeMapping) {
         String fromMappedColumns = mappedColumnsToStr(fromNodeMapping);
         String toMappedColumns = mappedColumnsToStr(toNodeMapping);
         String edgeMappedColumns = mappedColumnsToStr(csvEdgeMapping);
 
-        String query = """
+        return """
                 LOAD CSV
                     FROM '%s'
                     AS line
@@ -89,30 +100,28 @@ public class CSVMigrator implements Migrator, AutoCloseable {
                         toMappedColumns,
                         csvEdgeMapping.getEdgeLabel(),
                         edgeMappedColumns);
-
-        this.execute(query);
     }
 
-    private String mappedColumnsToStr(CSVNodeMapping nodeMapping) {
-        return mappedColumnsToStr(nodeMapping.getMappedColumns());
+    private String mappedColumnsToStr(NodeMapping nodeMapping) {
+        return mappedColumnsToStr(((CSVNodeMapping) nodeMapping).getMappedColumns());
     }
 
-    private String mappedColumnsToStr(CSVEdgeMapping edgeMapping) {
-        return mappedColumnsToStr(edgeMapping.getMappedColumns());
+    private String mappedColumnsToStr(EdgeMapping edgeMapping) {
+        return mappedColumnsToStr(((CSVEdgeMapping) edgeMapping).getMappedColumns());
     }
 
-    private String mappedColumnsToStr(Map<String, String> mappedColumns){
+    private String mappedColumnsToStr(Map<Integer, String> mappedColumns){
         ArrayList<String> chunks = new ArrayList<>();
         for (var column: mappedColumns.keySet()){
             var attribute = mappedColumns.get(column);
-            var chunk = "%s: line[%s]".formatted(attribute, column);
+            var chunk = "%s: line[%d]".formatted(attribute, column);
             chunks.add(chunk);
         }
         return String.join(", ", chunks);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.neo4jDriver.close();
     }
 
@@ -127,6 +136,13 @@ public class CSVMigrator implements Migrator, AutoCloseable {
             });
         }
         long end = System.currentTimeMillis();
-        System.out.printf("Time taken: %s s%n", (end - start) / 1000);
+        System.out.printf("Query execution time: %s ms%n%n", (end - start));
+    }
+
+    public String constructNeo4jDataPath(String dataPath){
+        if (dataPath.charAt(0) == '/')
+            return "file://" + dataPath;
+        else
+            return "file://" + System.getProperty("user.dir") + "/" + dataPath;
     }
 }

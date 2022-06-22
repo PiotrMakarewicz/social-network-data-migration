@@ -1,6 +1,8 @@
 package mapping.loader.json;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class NodeJson {
     private String sqlTableName;
@@ -16,7 +18,7 @@ public class NodeJson {
     }
 
     public Map<String, String> getMappedColumns() {
-        return mappedColumns;
+        return Optional.ofNullable(mappedColumns).orElse(new HashMap<>());
     }
 
     @Override
