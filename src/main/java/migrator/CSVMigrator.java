@@ -4,9 +4,7 @@ import mapping.CSVSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
 import mapping.edge.EdgeMapping;
-import mapping.edge.NoHeadersCSVEdgeMapping;
 import mapping.node.CSVNodeMapping;
-import mapping.node.NoHeadersCSVNodeMapping;
 import mapping.node.NodeMapping;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -19,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
+// Użycie CSVMigratora wymaga wykomentowania linijki dbms.directories.import w neo4j.conf
 public class CSVMigrator implements Migrator, AutoCloseable {
     private final String configPath;
     private final String dataPath;
@@ -29,7 +28,7 @@ public class CSVMigrator implements Migrator, AutoCloseable {
 
     public CSVMigrator(String configPath, String dataPath, boolean withHeaders) throws IOException {
         this.configPath = configPath;
-        this.dataPath = dataPath;
+        this.dataPath = constructNeo4jDataPath(dataPath);
         this.withHeaders = withHeaders;
         if (configPath != null) {
             Properties properties = new Properties();
@@ -84,7 +83,7 @@ public class CSVMigrator implements Migrator, AutoCloseable {
         String edgeMappedColumns = mappedColumnsToStr(csvEdgeMapping);
 
         return """
-                LOAD CSV%s
+                LOAD CSV
                     FROM '%s'
                     AS line
                     FIELDTERMINATOR '%s'
@@ -93,7 +92,6 @@ public class CSVMigrator implements Migrator, AutoCloseable {
                 CREATE (p1)-[e:%s {%s}]->(p2)
                 """
                 .formatted(
-                        withHeaders ? " WITH HEADERS" : "",
                         this.dataPath,
                         this.fieldTerminator,
                         fromNodeMapping.getNodeLabel(),
@@ -105,34 +103,18 @@ public class CSVMigrator implements Migrator, AutoCloseable {
     }
 
     private String mappedColumnsToStr(NodeMapping nodeMapping) {
-        if (withHeaders)
-            return mappedColumnsToStr(((CSVNodeMapping) nodeMapping).getMappedColumns());
-        else
-            return mappedIndexedColumnsToStr(((NoHeadersCSVNodeMapping) nodeMapping).getMappedColumns());
+        return mappedColumnsToStr(((CSVNodeMapping) nodeMapping).getMappedColumns());
     }
 
     private String mappedColumnsToStr(EdgeMapping edgeMapping) {
-        if (withHeaders)
-            return mappedColumnsToStr(((CSVEdgeMapping) edgeMapping).getMappedColumns());
-        else
-            return mappedIndexedColumnsToStr(((NoHeadersCSVEdgeMapping) edgeMapping).getMappedColumns());
+        return mappedColumnsToStr(((CSVEdgeMapping) edgeMapping).getMappedColumns());
     }
 
-    private String mappedIndexedColumnsToStr(Map<Integer, String> mappedColumns){
+    private String mappedColumnsToStr(Map<Integer, String> mappedColumns){
         ArrayList<String> chunks = new ArrayList<>();
         for (var column: mappedColumns.keySet()){
             var attribute = mappedColumns.get(column);
             var chunk = "%s: line[%d]".formatted(attribute, column);
-            chunks.add(chunk);
-        }
-        return String.join(", ", chunks);
-    }
-
-    private String mappedColumnsToStr(Map<String, String> mappedColumns){
-        ArrayList<String> chunks = new ArrayList<>();
-        for (var column: mappedColumns.keySet()){
-            var attribute = mappedColumns.get(column);
-            var chunk = "%s: line.%s".formatted(attribute, column);
             chunks.add(chunk);
         }
         return String.join(", ", chunks);
@@ -154,6 +136,13 @@ public class CSVMigrator implements Migrator, AutoCloseable {
             });
         }
         long end = System.currentTimeMillis();
-        System.out.printf("Time taken: %s s%n", (end - start) / 1000);
+        System.out.printf("Query execution time: %s ms%n%n", (end - start));
+    }
+
+    public String constructNeo4jDataPath(String dataPath){
+        if (dataPath.charAt(0) == '/')
+            return "file://" + dataPath;
+        else
+            return "file://" + System.getProperty("user.dir") + "/" + dataPath;
     }
 }

@@ -5,28 +5,29 @@ import com.google.gson.stream.JsonReader;
 import mapping.CSVSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
-import mapping.edge.NoHeadersCSVEdgeMapping;
 import mapping.loader.json.CSVMappingJsonSchema;
 import mapping.loader.json.EdgeJson;
 import mapping.loader.json.NodeJson;
 import mapping.node.CSVNodeMapping;
-import mapping.node.NoHeadersCSVNodeMapping;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import static utils.CSVUtils.*;
 
 public class CSVMappingLoader {
 
     private final boolean withHeaders;
+    private final String csvInputPath;
+    private final char fieldTerminator = '\t';
+    private List<String> headers;
 
-    public CSVMappingLoader(boolean withHeaders) {
+
+    public CSVMappingLoader(String csvInputPath, boolean withHeaders) {
         this.withHeaders = withHeaders;
+        this.csvInputPath = csvInputPath;
+        if (csvInputPath != null && withHeaders)
+            this.headers = getHeaders(csvInputPath, fieldTerminator);
     }
 
     public SchemaMapping load(String filename) throws FileNotFoundException {
@@ -62,29 +63,22 @@ public class CSVMappingLoader {
         var edgeLabel = edge.getEdgeLabel();
         var edgeMappedColumns = edge.getMappedColumns();
 
+        CSVNodeMapping fromNodeMapping, toNodeMapping;
+        CSVEdgeMapping edgeMapping;
+
         if (withHeaders) {
-            var fromNodeMapping = new CSVNodeMapping(fromNodeLabel, fromNodeMappedColumns);
-            var toNodeMapping = new CSVNodeMapping(toNodeLabel, toNodeMappedColumns);
-            var edgeMapping = new CSVEdgeMapping(edgeLabel, edgeMappedColumns, fromNodeMapping, toNodeMapping);
-
-            mapping.addNodeMapping(fromNodeMapping);
-            mapping.addNodeMapping(toNodeMapping);
-            mapping.addEdgeMapping(edgeMapping);
+            fromNodeMapping = new CSVNodeMapping(fromNodeLabel, headersToIndexes(fromNodeMappedColumns, headers));
+            toNodeMapping = new CSVNodeMapping(toNodeLabel, headersToIndexes(toNodeMappedColumns, headers));
+            edgeMapping = new CSVEdgeMapping(edgeLabel, headersToIndexes(edgeMappedColumns, headers), fromNodeMapping, toNodeMapping);
         } else {
-            var fromNodeMapping = new NoHeadersCSVNodeMapping(fromNodeLabel, keysToInt(fromNodeMappedColumns));
-            var toNodeMapping = new NoHeadersCSVNodeMapping(toNodeLabel, keysToInt(toNodeMappedColumns));
-            var edgeMapping = new NoHeadersCSVEdgeMapping(edgeLabel, keysToInt(edgeMappedColumns), fromNodeMapping, toNodeMapping);
-
-            mapping.addNodeMapping(fromNodeMapping);
-            mapping.addNodeMapping(toNodeMapping);
-            mapping.addEdgeMapping(edgeMapping);
+            fromNodeMapping = new CSVNodeMapping(fromNodeLabel, keysToInt(fromNodeMappedColumns));
+            toNodeMapping = new CSVNodeMapping(toNodeLabel, keysToInt(toNodeMappedColumns));
+            edgeMapping = new CSVEdgeMapping(edgeLabel, keysToInt(edgeMappedColumns), fromNodeMapping, toNodeMapping);
         }
+        mapping.addNodeMapping(fromNodeMapping);
+        mapping.addNodeMapping(toNodeMapping);
+        mapping.addEdgeMapping(edgeMapping);
 
         return mapping;
-    }
-
-    private Map<Integer, String> keysToInt(Map<String, String> map) {
-        return map.entrySet().stream()
-                .collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue));
     }
 }

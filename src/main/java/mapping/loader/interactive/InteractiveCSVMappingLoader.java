@@ -3,192 +3,159 @@ package mapping.loader.interactive;
 import mapping.CSVSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
-import mapping.edge.EdgeMapping;
-import mapping.edge.NoHeadersCSVEdgeMapping;
-import mapping.edge.SQLEdgeMapping;
 import mapping.node.CSVNodeMapping;
-import mapping.node.NoHeadersCSVNodeMapping;
-import mapping.node.NodeMapping;
-import mapping.node.SQLNodeMapping;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
-import static java.util.List.of;
+import static utils.CSVUtils.*;
 
 public class InteractiveCSVMappingLoader {
-    private final Map<String, NodeMapping> nodeMappings = new HashMap<>();
-    private final Map<String, EdgeMapping> edgeMappings = new HashMap<>();
+    private CSVNodeMapping fromNodeMapping;
+    private CSVNodeMapping toNodeMapping;
+    private String edgeLabel;
+    private Map<Integer, String> edgeMappedColumns;
     private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private final String csvInputPath;
-    private final CSVSchemaMapping schemaMapping = new CSVSchemaMapping();
     private final boolean withHeaders;
     private final char fieldTerminator = '\t';
-    private final List<String> headers;
-    private final int columnCnt;
+    private List<String> headers;
+    private int columnCnt;
 
-    private int nodeCounter = 0;
 
     public InteractiveCSVMappingLoader(String csvInputPath, boolean withHeaders) {
         this.csvInputPath = csvInputPath;
         this.withHeaders = withHeaders;
-        if (withHeaders) {
-            this.headers = getHeaders();
-            this.columnCnt = 0;
-        }
-        else {
-            this.headers = null;
-            this.columnCnt = getColumnCnt();
-        }
-    }
-
-    private List<String> getHeaders() {
-        return List.of(readFirstLine().split(Pattern.quote(String.valueOf(fieldTerminator))));
-    }
-
-    private int getColumnCnt() {
-        return (int) (readFirstLine().chars().filter(c -> c == fieldTerminator).count() + 1);
-    }
-
-    private String readFirstLine() {
-        try (BufferedReader file = new BufferedReader(new FileReader(csvInputPath))) {
-            return file.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Error while reading file: %s%n", csvInputPath), e);
+        if (csvInputPath != null) {
+            if (withHeaders) {
+                this.headers = getHeaders(csvInputPath, fieldTerminator);
+                this.columnCnt = 0;
+            } else {
+                this.headers = null;
+                this.columnCnt = getColumnCnt(csvInputPath, fieldTerminator);
+            }
         }
     }
-
-
 
     public SchemaMapping load(String filename) throws IOException {
         showHelp();
         do {
-            System.out.print("=> ");
+            System.out.print("\n=> ");
             String command = in.readLine();
             if (command == null) {
                 System.out.println("Incorrect command");
                 showHelp();
             } else if (command.matches("help")) {
                 showHelp();
-            } else if (command.matches("add node mapping")) { // TODO add from node mapping, add to node mapping
-                addNodeMapping();
-            } else if (command.matches("add edge mapping")) {
-                addEdgeMapping();
-            } else if (command.matches("list node mappings")) {
-                listNodeMappings();
-            } else if (command.matches("list edge mappings")) {
-                listEdgeMappings();
-            } else if (command.matches("delete node mapping \\w+")) {
-                String mappingName = command.split("\\s")[3];
-                deleteNodeMapping(mappingName);
-            } else if (command.matches("delete edge mapping \\w+")) {
-                String mappingName = command.split("\\s")[3];
-                deleteEdgeMapping(mappingName);
+            } else if (command.matches("set from node mapping")) {
+                setFromNodeMapping();
+            } else if (command.matches("set to node mapping")) {
+                setToNodeMapping();
+            } else if (command.matches("set edge mapping")) {
+                setEdgeMapping();
+            } else if (command.matches("show mappings")) {
+                showMappings();
             } else if (command.matches("head")) {
                 head();
-            } else if (command.matches("quit")) {
-                if (questionYesNo("Are you sure?"))
-                    break;
+            } else if (command.matches("start migration")) {
+                if (!validateMapping()) continue;
+                if (questionYesNo("Are you sure?")) break;
             } else {
                 System.out.println("Incorrect command");
                 showHelp();
             }
         } while (true);
 
+        var edgeMapping = new CSVEdgeMapping(edgeLabel, edgeMappedColumns, fromNodeMapping, toNodeMapping);
+        var schemaMapping = new CSVSchemaMapping();
+        schemaMapping.addEdgeMapping(edgeMapping);
+        schemaMapping.addNodeMapping(fromNodeMapping);
+        schemaMapping.addNodeMapping(toNodeMapping);
         return schemaMapping;
     }
 
-    private void addEdgeMapping() throws IOException {
-        String name;
+    private boolean validateMapping() {
+        if (edgeMappedColumns == null || edgeLabel == null) {
+            System.out.println("Edge mapping not defined yet.");
+            return false;
+        }
+        if (fromNodeMapping == null) {
+            System.out.println("Source node mapping not defined yet.");
+            return false;
+        }
+        if (toNodeMapping == null) {
+            System.out.println("Destination node mapping not defined yet.");
+            return false;
+        }
+        return true;
+    }
+
+    private void setEdgeMapping() throws IOException {
+        String label;
         do {
             System.out.print("Edge label: ");
-            name = in.readLine();
-            if (name == null) {
-                if (questionYesNo("Stop mapping creation?"))
-                    return;
+            label = in.readLine();
+            if (label == null) {
+                if (questionYesNo("Stop mapping creation?")) return;
             } else {
                 break;
             }
         } while (true);
 
-        do {
-            System.out.println("Source node mapping:");
+        Map<Integer, String> columnMappings = new HashMap<>();
+
+        if (questionYesNo("Add column mappings?")) {
+            columnMappings = createColumnMappings();
         }
 
-
-        // TODO node mappings from and to
-
-        // TODO column mappings
+        if (questionYesNo("Save edge mapping?")) {
+            this.edgeLabel = label;
+            this.edgeMappedColumns = columnMappings;
+        }
     }
 
-    private NodeMapping getNodeMapping(String prompt){
-        String fromTable;
-        do {
-            System.out.println("Source table: ");
-            fromTable = in.readLine();
-            if (fromTable == null) {
-                if (questionYesNo("Stop mapping creation?"))
-                    return;
-                else
-                    continue;
+    private void showMappings() {
+        System.out.println("Source node mapping: ");
+        System.out.println(fromNodeMapping);
+
+        System.out.println("Destination node mapping: ");
+        System.out.println(toNodeMapping);
+
+        System.out.println("Edge mapping: ");
+        if (edgeLabel == null){
+            System.out.println("null");
+        }
+        else System.out.printf("Label: %s", edgeLabel);
+
+        if (edgeMappedColumns != null && ! edgeMappedColumns.isEmpty()) {
+            System.out.println("\nEdge mapped columns: ");
+            StringBuilder builder = new StringBuilder();
+            for (Map.Entry<Integer, String> mapping : edgeMappedColumns.entrySet()) {
+                builder.append("\t%d -> %s\n".formatted(mapping.getKey(), mapping.getValue()));
             }
-            if (!databaseInfo.hasTable(fromTable)) {
-                System.out.printf("Table %s not found in the database.", fromTable);
-            } else if (schemaMapping.getNodeLabelForTableName(fromTable).isEmpty()){
-                System.out.printf("Table %s exists in the database, but there is no node mapping for it.", fromTable);
-            } else {
-                break;
-            }
-        } while (true);
-    }
-
-    private void listNodeMappings(){
-        System.out.println();
-        for (Map.Entry<String, NodeMapping> entry : nodeMappings.entrySet()) {
-            System.out.printf("Mapping name:      %s%n", entry.getKey());
-            System.out.println(withHeaders ? (CSVNodeMapping) entry.getValue() : (NoHeadersCSVNodeMapping) entry.getValue());
-        }
-    }
-    private void listEdgeMappings(){
-        System.out.println();
-        for (Map.Entry<String, EdgeMapping> entry : edgeMappings.entrySet()) {
-            System.out.printf("Mapping name:      %s%n", entry.getKey());
-            System.out.println(withHeaders ? (CSVEdgeMapping) entry.getValue() : (NoHeadersCSVEdgeMapping) entry.getValue());
+            System.out.println(builder);
         }
     }
 
-    private void deleteNodeMapping(String mappingName){
-        NodeMapping nodeMapping = nodeMappings.remove(mappingName);
-        schemaMapping.getNodeMappings().remove(nodeMapping);
-    }
-    private void deleteEdgeMapping(String mappingName){
-        EdgeMapping edgeMapping = edgeMappings.remove(mappingName);
-        schemaMapping.getEdgeMappings().remove(edgeMapping);
-    }
 
     private void showHelp() {
         String help = """
                 List of available commands:
                 help
                 \tShows list of available commands.
-                add node mapping
-                \tAllows to create new node mapping.
-                add edge mapping
-                \tAllows to create new edge mapping.
-                list node mappings
-                \tShows detailed list of created node mappings.
-                list edge mappings
-                \tShows detailed list of created edge mappings.
-                delete node mapping <name>
-                \tDeletes node mapping.
-                delete edge mapping <name>
-                \tDeletes edge mapping.
+                set from node mapping
+                \tAllows to create or edit the source node mapping.
+                set to node mapping
+                \tAllows to create or edit the destination node mapping.
+                set edge mapping
+                \tAllows to create or edit the edge mapping.
+                show mappings
+                \tShows a detailed list of created mappings.
                 head
-                \tShows first 10 rows of the dataset
-                quit
-                \tQuits interactive mapping creation and proceeds to migrate data.
+                \tShows the first 10 rows of the dataset.
+                start migration
+                \tFinishes interactive mapping creation and proceeds to migrate data.
 
                 Use ENTER when asked for input to stop mapping creation.
                 """;
@@ -206,87 +173,107 @@ public class InteractiveCSVMappingLoader {
 
         try (BufferedReader csvInput = new BufferedReader(file)) {
             for (int i = 0; i < 10; i++) {
-                System.out.print(csvInput.readLine());
+                System.out.println(csvInput.readLine());
             }
         } catch (IOException e) {
             System.out.printf("Error while reading file: %s%n", csvInputPath);
         }
     }
 
-    private void addNodeMapping() throws IOException {
+    private void setFromNodeMapping() throws IOException {
+        var m = createNodeMapping();
+        if (m != null)
+            fromNodeMapping = m;
+    }
+
+    private void setToNodeMapping() throws IOException {
+        var m = createNodeMapping();
+        if (m != null)
+            toNodeMapping = m;
+    }
+
+    private CSVNodeMapping createNodeMapping() throws IOException {
         String label;
         do {
             System.out.print("Node label: ");
             label = in.readLine();
             if (label.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
-                    return;
+                    return null;
             } else {
                 break;
             }
         } while (true);
 
-        String index;
-        do {
-            System.out.print("Column index: ");
-            index = in.readLine();
-            if (index.isBlank()) {
-                if (questionYesNo("Stop mapping creation?"))
-                    return;
-            }
-        } while (!index.matches("^\\d$"));
+        var mappedColumns = createColumnMappings();
 
-        NodeMapping nodeMapping;
-
-        if (withHeaders){
-            var mappedColumns = createColumnMappings();
-            nodeMapping = new CSVNodeMapping(label, mappedColumns);
-        }else {
-            var mappedColumns = createNoHeaderColumnMappings();
-            nodeMapping = new NoHeadersCSVNodeMapping(label, mappedColumns);
-        }
-
-        if (questionYesNo("Save mapping?") && !nodeMappings.containsValue(nodeMapping)) {
-            String name = label + nodeCounter++;
-            nodeMappings.put(name, nodeMapping);
-            schemaMapping.addNodeMapping(nodeMapping);
-        }
+        if (questionYesNo("Save node mapping?"))
+            return new CSVNodeMapping(label, mappedColumns);
+        else
+            return null;
     }
 
-    private Map<String, String> createColumnMappings() throws IOException {
+    private Map<Integer, String> createColumnMappings() throws IOException {
         Map<String, String> columnMappings = new HashMap<>();
-        if (questionYesNo("Add column mappings?")) {
+
+
             boolean stopMappingCreation = false;
             do {
                 boolean stopCurrentCreation = false;
                 String column;
-                do {
-                    System.out.print("Column name: ");
-                    column = in.readLine();
-                    if (column == null) {
-                        if (questionYesNo("Stop column mapping creation?")) {
-                            stopMappingCreation = true;
-                            break;
+                if (withHeaders) {
+                    do {
+                        System.out.print("Column name: ");
+                        column = in.readLine();
+                        if (column.isBlank()) {
+                            if (questionYesNo("Stop column mapping creation?")) {
+                                stopMappingCreation = true;
+                                break;
+                            } else {
+                                continue;
+                            }
+                        }
+                        if (!headers.contains(column)) {
+                            System.out.println("Incorrect column name.");
                         } else {
+                            break;
+                        }
+                    } while (true);
+                } else {
+                    do {
+                        System.out.print("Column index: ");
+                        column = in.readLine();
+                        if (column.isBlank()) {
+                            if (questionYesNo("Stop column mapping creation?")) {
+                                stopMappingCreation = true;
+                                break;
+                            } else {
+                                continue;
+                            }
+                        }
+                        int index;
+                        try {
+                            index = parseInt(column);
+                        } catch (NumberFormatException e) {
                             continue;
                         }
-                    }
-                    if (! headers.contains(column)) {
-                        System.out.println("Incorrect column name.");
-                    } else {
-                        break;
-                    }
-                } while (true);
-                if (stopMappingCreation)
-                    break;
+                        if (index >= columnCnt) {
+                            System.out.printf("There are %d columns in the CSV file. Please provide a number between 0 and %d%n", columnCnt, columnCnt - 1);
+                        } else {
+                            break;
+                        }
+
+                    } while (true);
+                }
+
+                if (stopMappingCreation) break;
                 String prop;
                 do {
-                    System.out.println("Node/Edge property name: ");
+                    System.out.print("Property name: ");
                     prop = in.readLine();
-                    if (prop == null) {
+                    if (prop.isBlank()) {
                         if (questionYesNo("Stop current mapping creation?")) {
-                            if (questionYesNo("Stop column mapping creation?"))
-                                stopMappingCreation = true;
+                            if (questionYesNo("Stop column mapping creation?")) stopMappingCreation = true;
                             stopCurrentCreation = true;
                             break;
                         } else {
@@ -299,80 +286,25 @@ public class InteractiveCSVMappingLoader {
                         break;
                     }
                 } while (true);
+
                 if (!stopMappingCreation && !stopCurrentCreation)
                     columnMappings.put(column, prop);
             } while (!stopMappingCreation);
-        }
-        return columnMappings;
+
+        if (withHeaders)
+            return headersToIndexes(columnMappings, headers);
+        else
+            return keysToInt(columnMappings);
     }
-
-    private Map<Integer, String> createNoHeaderColumnMappings() throws IOException {
-        Map<Integer, String> columnMappings = new HashMap<>();
-        if (questionYesNo("Add column mappings?")) {
-            boolean stopMappingCreation = false;
-            do {
-                boolean stopCurrentCreation = false;
-                int column = 0;
-                do {
-                    System.out.print("Column index: ");
-                    String columnStr = in.readLine();
-                    if (columnStr == null) {
-                        if (questionYesNo("Stop column mapping creation?")) {
-                            stopMappingCreation = true;
-                            break;
-                        } else {
-                            continue;
-                        }
-                    }
-                    column = parseInt(columnStr);
-                    if (column >= columnCnt) {
-                        System.out.printf("There are %d columns in the CSV file. Please provide a number between 0 and %d%n", columnCnt, columnCnt - 1);
-                    } else {
-                        break;
-                    }
-                } while (true);
-                if (stopMappingCreation)
-                    break;
-                String prop;
-                do {
-                    System.out.println("Node/Edge property name: ");
-                    prop = in.readLine();
-                    if (prop == null) {
-                        if (questionYesNo("Stop current mapping creation?")) {
-                            if (questionYesNo("Stop column mapping creation?"))
-                                stopMappingCreation = true;
-                            stopCurrentCreation = true;
-                            break;
-                        } else {
-                            continue;
-                        }
-                    }
-                    if (columnMappings.containsValue(prop)) {
-                        System.out.println("Property name already in use.");
-                    } else {
-                        break;
-                    }
-                } while (true);
-                if (!stopMappingCreation && !stopCurrentCreation)
-                    columnMappings.put(column, prop);
-            } while (!stopMappingCreation);
-        }
-        return columnMappings;
-    }
-
-
 
     private boolean questionYesNo(String prompt) throws IOException {
         while (true) {
-            System.out.println(prompt + " (y/n)");
+            System.out.print(prompt + " (y/n): ");
             System.out.flush();
             String stop = in.readLine();
-            if (stop == null)
-                continue;
-            if (stop.toLowerCase(Locale.ROOT).equals("y"))
-                return true;
-            if (stop.toLowerCase(Locale.ROOT).equals("n"))
-                return false;
+            if (stop == null) continue;
+            if (stop.toLowerCase(Locale.ROOT).equals("y")) return true;
+            if (stop.toLowerCase(Locale.ROOT).equals("n")) return false;
         }
     }
 }

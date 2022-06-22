@@ -4,14 +4,14 @@ import java.util.Map;
 import java.util.Objects;
 
 public class CSVNodeMapping extends NodeMapping {
-    private final Map<String, String> mappedColumns;
+    private final Map<Integer, String> mappedColumns;
 
-    public CSVNodeMapping(String nodeLabel, Map<String, String> mappedColumns) {
+    public CSVNodeMapping(String nodeLabel, Map<Integer, String> mappedColumns) {
         super(nodeLabel);
         this.mappedColumns = mappedColumns;
     }
 
-    public Map<String, String> getMappedColumns() {
+    public Map<Integer, String> getMappedColumns() {
         return mappedColumns;
     }
 

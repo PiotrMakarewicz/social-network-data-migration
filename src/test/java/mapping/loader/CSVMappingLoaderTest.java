@@ -4,9 +4,8 @@ import com.google.gson.Gson;
 import mapping.CSVSchemaMapping;
 import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
-import mapping.edge.NoHeadersCSVEdgeMapping;
 import mapping.loader.json.CSVMappingJsonSchema;
-import mapping.node.NoHeadersCSVNodeMapping;
+import mapping.node.CSVNodeMapping;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CSVMappingLoaderTest {
+    String csvInputPath = getClass().getClassLoader().getResource("test.csv").getPath();
 
     @Test
     public void testWithHeaders(){
@@ -42,7 +42,7 @@ public class CSVMappingLoaderTest {
                 }""";
 
         CSVMappingJsonSchema jsonSchema = new Gson().fromJson(rawJson, CSVMappingJsonSchema.class);
-        var loader = new CSVMappingLoader(true);
+        var loader = new CSVMappingLoader(csvInputPath, true);
         SchemaMapping mapping = loader.convertToSchemaMapping(jsonSchema);
         assertNotNull(mapping);
         assertNotNull(mapping.getEdgeMappings());
@@ -68,6 +68,13 @@ public class CSVMappingLoaderTest {
 
         assertEquals(fromNode.getNodeLabel(), "Person");
         assertEquals(toNode.getNodeLabel(), "Person2");
+        var nodeMapping =  mapping.getNodeMappings().stream().findFirst().get();
+
+        assertInstanceOf(CSVNodeMapping.class, nodeMapping);
+        var nhCsvNodeMapping = (CSVNodeMapping) nodeMapping;
+        assertTrue(nhCsvNodeMapping.getMappedColumns().containsKey(1) || nhCsvNodeMapping.getMappedColumns().containsKey(0));
+
+        assertTrue(csvEdgeMapping.getMappedColumns().containsKey(2));
     }
 
     @Test
@@ -97,7 +104,7 @@ public class CSVMappingLoaderTest {
                 }""";
 
         CSVMappingJsonSchema jsonSchema = new Gson().fromJson(rawJson, CSVMappingJsonSchema.class);
-        var loader = new CSVMappingLoader(false);
+        var loader = new CSVMappingLoader(csvInputPath, false);
         SchemaMapping mapping = loader.convertToSchemaMapping(jsonSchema);
         assertNotNull(mapping);
         assertNotNull(mapping.getEdgeMappings());
@@ -111,9 +118,9 @@ public class CSVMappingLoaderTest {
 
         var edgeMapping = csvMapping.getEdgeMappings().stream().findFirst().get();
 
-        assertInstanceOf(NoHeadersCSVEdgeMapping.class, edgeMapping);
+        assertInstanceOf(CSVEdgeMapping.class, edgeMapping);
 
-        var csvEdgeMapping = (NoHeadersCSVEdgeMapping) edgeMapping;
+        var csvEdgeMapping = (CSVEdgeMapping) edgeMapping;
 
         var fromNode = csvEdgeMapping.getFromNodeMapping();
         var toNode = csvEdgeMapping.getToNodeMapping();
@@ -126,9 +133,10 @@ public class CSVMappingLoaderTest {
 
         var nodeMapping =  mapping.getNodeMappings().stream().findFirst().get();
 
-        assertInstanceOf(NoHeadersCSVNodeMapping.class, nodeMapping);
-        var nhCsvNodeMapping = (NoHeadersCSVNodeMapping) nodeMapping;
+        assertInstanceOf(CSVNodeMapping.class, nodeMapping);
+        var nhCsvNodeMapping = (CSVNodeMapping) nodeMapping;
 
         assertTrue(nhCsvNodeMapping.getMappedColumns().containsKey(1) || nhCsvNodeMapping.getMappedColumns().containsKey(0));
+        assertTrue(csvEdgeMapping.getMappedColumns().containsKey(2));
     }
 }
