@@ -27,4 +27,17 @@ public class CSVNodeMapping extends NodeMapping {
     public int hashCode() {
         return Objects.hash(super.hashCode(), mappedColumns);
     }
+
+    @Override
+    public String toString() {
+        String header = super.toString() +
+                """
+                Mapped columns:
+                """;
+        StringBuilder builder = new StringBuilder(header);
+        for (Map.Entry<Integer, String> mapping : mappedColumns.entrySet()) {
+            builder.append("\t%d -> %s\n".formatted(mapping.getKey(), mapping.getValue()));
+        }
+        return builder.toString();
+    }
 }
