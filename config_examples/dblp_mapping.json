@@ -1,47 +1,59 @@
 {
   "nodes": [
     {
-      "nodeMappingId": "nm_author",
       "nodeLabel": "Author",
       "xpath": "/dblp/article/author",
       "innerTextMappedTo": "name",
       "mappedAttributes": {},
-      "mappedChildElements": {}
+      "mappedChildElementInnerTexts": {}
     },
     {
-      "nodeMappingId": "nm_publication",
       "nodeLabel": "Publication",
       "xpath": "/dblp/article",
       "innerTextMappedTo": null,
       "mappedAttributes": {
         "publtype": "type"
       },
-      "mappedChildElements": {
+      "mappedChildElementInnerTexts": {
         "title": "title",
         "year": "year"
       }
     }
   ],
   "edges": [
+    // krawędź nieskierowana (dziecko)---(dziecko)
     {
       "edgeLabel": "CollaboratedWith",
-      "directed": false,
-      "firstNodeMappingId": "nm_author",
-      "secondNodeMappingId": "nm_author",
-      "mappedAttributes": {
+      "edgeType": "undirected-between-children",
+      "childNodeLabel": "Author",
+      "mappedParentAttributes": {
         "mdate": "date"
       },
-      "mappedChildElements": {
+      "mappedParentsChildElementInnerTexts": {
         "title": "publicationTitle"
       }
     },
+    // krawędź skierowana (rodzic)-->(dziecko)
+    {
+      "edgeLabel": "IsWrittenBy",
+      "edgeType": "directed-parent-to-child",
+      "parentNodeLabel": "Publication",
+      "childNodeLabel": "Author",
+      "mappedParentAttributes": {},
+      "mappedParentsChildElementInnerTexts": {},
+      "mappedChildAttributes": {},
+      "mappedChildsChildElementInnerTexts": {}
+    },
+    // krawędź skierowana (dziecko)-->(rodzic)
     {
       "edgeLabel": "Wrote",
-      "directed": true,
-      "firstNodeMappingId": "nm_author",
-      "secondNodeMappingId": "nm_publication",
-      "mappedAttributes": {},
-      "mappedChildElements": {}
+      "edgeType": "directed-child-to-parent",
+      "parentNodeLabel": "Publication",
+      "childNodeLabel": "Author",
+      "mappedParentAttributes": {},
+      "mappedParentsChildElementInnerTexts": {},
+      "mappedChildAttributes": {},
+      "mappedChildsChildElementInnerTexts": {}
     }
   ]
 }
