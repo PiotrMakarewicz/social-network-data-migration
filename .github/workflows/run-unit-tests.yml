@@ -9,5 +9,7 @@ jobs:
         with:
           java-version: '16'
           distribution: 'adopt'
+      - name: Checkout the repository
+        uses: actions/checkout@v3
       - name: Compile and run unit tests
         run: ./gradlew test
