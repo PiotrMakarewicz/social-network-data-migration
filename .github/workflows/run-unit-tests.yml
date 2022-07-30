@@ -11,5 +11,9 @@ jobs:
           distribution: 'adopt'
       - name: Checkout the repository
         uses: actions/checkout@v3
-      - name: Compile and run unit tests
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Execute Gradle build
+        run: ./gradlew build
+      - name: Run unit tests
         run: ./gradlew test
