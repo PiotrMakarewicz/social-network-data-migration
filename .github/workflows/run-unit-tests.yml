@@ -11,9 +11,11 @@ jobs:
           distribution: 'adopt'
       - name: Checkout the repository
         uses: actions/checkout@v3
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
       - name: Execute Gradle build
-        run: ./gradlew build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
       - name: Run unit tests
-        run: ./gradlew test
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: test
