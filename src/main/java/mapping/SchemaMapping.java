@@ -5,10 +5,11 @@ import mapping.node.NodeMapping;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 public abstract class SchemaMapping {
-    private final Collection<NodeMapping> nodeMappings = new HashSet<>();
-    private final Collection<EdgeMapping> edgeMappings = new HashSet<>();
+    private final Set<NodeMapping> nodeMappings = new HashSet<>();
+    private final Set<EdgeMapping> edgeMappings = new HashSet<>();
 
     public SchemaMapping(){}
 
@@ -20,11 +21,11 @@ public abstract class SchemaMapping {
         edgeMappings.add(edgeMapping);
     }
 
-    public Collection<NodeMapping> getNodeMappings() {
+    public Set<NodeMapping> getNodeMappings() {
         return nodeMappings;
     }
 
-    public Collection<EdgeMapping> getEdgeMappings() {
+    public Set<EdgeMapping> getEdgeMappings() {
         return edgeMappings;
     }
 
