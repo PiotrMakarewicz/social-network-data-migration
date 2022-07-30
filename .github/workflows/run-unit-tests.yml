@@ -8,6 +8,6 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '16'
-          distribution: 'openjdk'
+          distribution: 'adopt'
       - name: Compile and run unit tests
         run: ./gradlew test
