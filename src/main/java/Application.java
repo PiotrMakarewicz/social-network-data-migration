@@ -1,4 +1,6 @@
+import mapping.SchemaMapping;
 import mapping.loader.CSVMappingLoader;
+import mapping.loader.InteractiveSQLMappingLoader;
 import mapping.loader.SQLMappingLoader;
 import migrator.CSVMigrator;
 import migrator.Migrator;
@@ -7,7 +9,11 @@ import migrator.PostgresMigrator;
 public class Application {
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 2) {
+        if (args.length == 2 && args[0].equals("--i")) {
+            InteractiveSQLMappingLoader mappingLoader = new InteractiveSQLMappingLoader(args[1]);
+            SchemaMapping mapping = mappingLoader.load(null);
+            System.out.println(mapping);
+        } else if (args.length == 2) {
             try (Migrator migrator = new PostgresMigrator(args[0])){
                 SQLMappingLoader mappingLoader = new SQLMappingLoader();
                 long start = System.currentTimeMillis();
@@ -27,7 +33,8 @@ public class Application {
         }
         else {
             System.out.println("Usage: java Application <config-path> <mapping-path>\n" +
-                               "       java Application --csv <config-path> <data-path> <mapping-path>");
+                               "       java Application --csv <config-path> <data-path> <mapping-path>" +
+                               "       java Application --i <config-path>");
         }
     }
 }

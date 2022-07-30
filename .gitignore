@@ -27,7 +27,9 @@ hs_err_pid*
 plugins
 data
 
-gradle
 .gradle
 gradlew
 gradlew.bat
+
+build
+build/*
