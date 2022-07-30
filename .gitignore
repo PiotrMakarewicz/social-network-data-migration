@@ -30,7 +30,6 @@ data
 .gradle
 gradlew
 gradlew.bat
-*.csv
 
 build
 build/*

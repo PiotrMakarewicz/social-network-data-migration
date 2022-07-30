@@ -32,13 +32,22 @@ public class CSVUtils {
     }
 
     public static Map<Integer, String> headersToIndexes(Map<String, String> map, List<String> headers) {
+
         return map.entrySet().stream()
                 .collect(Collectors.toMap(e ->
                         {
-                            var index = headers.indexOf(e.getKey());
-                            if (index == -1)
-                                throw new RuntimeException("There is no header %s in the CSV file".formatted(e.getKey()));
-                            return index;
+                            String searchedKey = e.getKey();
+                            var index = headers.indexOf(searchedKey);
+                            for (int i = 0; i < headers.size(); i++){
+                                if (((String) headers.get(i)).equals(searchedKey)){
+                                    index = i;
+                                }
+                            }
+                            if (index == -1) {
+                                System.out.println(headers);
+                                throw new RuntimeException("There is no header %s in the CSV file".formatted(searchedKey));
+                            }
+                                return index;
                         },
                         Map.Entry::getValue));
     }

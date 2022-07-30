@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CSVMigratorTest {
     @Test
     void buildLoadCsvWithHeadersQuery() throws IOException {
-        CSVMigrator migrator = new CSVMigrator(null, "http://data.csv", false);
+        CSVMigrator migrator = new CSVMigrator(null, "/data.csv", false);
 
         //when
         CSVNodeMapping fromNodeMapping = new CSVNodeMapping(
@@ -31,7 +31,7 @@ public class CSVMigratorTest {
 
         String expected = """
                 LOAD CSV
-                    FROM 'http://data.csv'
+                    FROM 'file:///data.csv'
                     AS line
                     FIELDTERMINATOR '\\t'
                 MERGE (p1:FromNodeLabel {from_node_attr: line[0]})

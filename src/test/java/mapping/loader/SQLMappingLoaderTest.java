@@ -53,13 +53,13 @@ public class SQLMappingLoaderTest {
               "edges": [
                 {
                   "edgeLabel": "IsAuthor",
-                  "foreignKey": "comments.author_id",
+                  "foreignKeyTable": "comments",
                   "from": "authors",
                   "to": "comments"
                 },
                 {
                   "edgeLabel": "RefersTo",
-                  "foreignKey": "comments.post_id",
+                  "foreignKeyTable": "comments",
                   "from": "comments",
                   "to": "posts"
                 },
@@ -81,14 +81,5 @@ public class SQLMappingLoaderTest {
         SchemaMapping mapping = loader.convertToSchemaMapping(jsonSchema);
         assertEquals(4, mapping.getNodeMappings().size());
         assertEquals(3, mapping.getEdgeMappings().size());
-//        assertTrue(mapping.getNodeMappings().stream().allMatch(
-//                n -> n instanceof SQLNodeMapping
-//                        && Objects.equals(((SQLNodeMapping) n).getSqlTableName(), "authors")
-//                        && Objects.equals(n.getNodeLabel(), "Person")
-//                )
-//        );
-        // TODO sprawdzić poprawność mapowań
-
-        // TODO gdy będę miał więcej czasu to napiszę lepszy test - Piotrek
-    }
+   }
 }

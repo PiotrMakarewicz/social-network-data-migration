@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class CSVEdgeMapping extends EdgeMapping{
     private final Map<Integer, String> mappedColumns;
-
     private final NodeMapping fromNodeMapping;
     private final NodeMapping toNodeMapping;
 
