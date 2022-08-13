@@ -21,10 +21,9 @@
     }
   ],
   "edges": [
-    // krawędź nieskierowana (dziecko)---(dziecko)
     {
       "edgeLabel": "CollaboratedWith",
-      "edgeType": "undirected-between-children",
+      "edgeType": "child-child",
       "childNodeLabel": "Author",
       "mappedParentAttributes": {
         "mdate": "date"
@@ -33,10 +32,9 @@
         "title": "publicationTitle"
       }
     },
-    // krawędź skierowana (rodzic)-->(dziecko)
     {
       "edgeLabel": "IsWrittenBy",
-      "edgeType": "directed-parent-to-child",
+      "edgeType": "parent-to-child",
       "parentNodeLabel": "Publication",
       "childNodeLabel": "Author",
       "mappedParentAttributes": {},
@@ -44,10 +42,9 @@
       "mappedChildAttributes": {},
       "mappedChildsChildElementInnerTexts": {}
     },
-    // krawędź skierowana (dziecko)-->(rodzic)
     {
       "edgeLabel": "Wrote",
-      "edgeType": "directed-child-to-parent",
+      "edgeType": "child-to-parent",
       "parentNodeLabel": "Publication",
       "childNodeLabel": "Author",
       "mappedParentAttributes": {},
