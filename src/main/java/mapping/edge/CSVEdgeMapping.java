@@ -1,16 +1,23 @@
 package mapping.edge;
 
-import lombok.Getter;
 import mapping.node.CSVNodeMapping;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class CSVEdgeMapping extends EdgeMapping{
-    @Getter private final Map<Integer, String> mappedColumns;
+
+    private Map<Integer, String> mappedColumns;
 
     public CSVEdgeMapping(String edgeLabel, Map<Integer, String> mappedColumns, CSVNodeMapping fromNodeMapping, CSVNodeMapping toNodeMapping) {
         super(edgeLabel, fromNodeMapping.getNodeLabel(), toNodeMapping.getNodeLabel());
         this.mappedColumns = mappedColumns;
+    }
+
+    public Map<Integer, String> getMappedColumns() {
+        if (mappedColumns == null)
+            mappedColumns = new HashMap<>();
+        return mappedColumns;
     }
 
     @Override

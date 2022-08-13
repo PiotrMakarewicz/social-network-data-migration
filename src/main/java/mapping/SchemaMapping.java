@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class SchemaMapping {
+
     protected final Set<NodeMapping> nodeMappings = new HashSet<>();
+
     protected final Set<EdgeMapping> edgeMappings = new HashSet<>();
 
     @Override

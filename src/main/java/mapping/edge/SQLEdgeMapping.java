@@ -5,8 +5,11 @@ import lombok.Getter;
 import java.util.Objects;
 
 public abstract class SQLEdgeMapping extends EdgeMapping {
-    @Getter @SerializedName("from") private final String fromTable;
-    @Getter @SerializedName("to") private final String toTable;
+    @Getter @SerializedName("from")
+    private final String fromTable;
+
+    @Getter @SerializedName("to")
+    private final String toTable;
 
     protected SQLEdgeMapping(String edgeLabel, String fromNode, String toNode, String fromTable, String toTable) {
         super(edgeLabel, fromNode, toNode);

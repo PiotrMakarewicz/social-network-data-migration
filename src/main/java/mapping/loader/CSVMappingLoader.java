@@ -2,7 +2,6 @@ package mapping.loader;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import mapping.CSVSchemaMapping;
@@ -24,8 +23,7 @@ public class CSVMappingLoader {
 
     public CSVMappingLoader(String csvInputPath, boolean withHeaders) {
         this.withHeaders = withHeaders;
-        if (csvInputPath != null && withHeaders)
-            this.headers = getHeaders(csvInputPath, fieldTerminator);
+        this.headers = getHeaders(csvInputPath, fieldTerminator);
     }
 
     public CSVSchemaMapping load(String configPath) throws FileNotFoundException {
@@ -35,10 +33,18 @@ public class CSVMappingLoader {
                 .create();
 
         JsonReader reader = new JsonReader(new FileReader(configPath));
-        try {
-            return gson.fromJson(reader, CSVSchemaMapping.class);
-        } catch (JsonParseException e) {
+
+        CSVSchemaMapping schemaMapping = gson.fromJson(reader, CSVSchemaMapping.class);
+        List.of(schemaMapping.getFromNodeMapping(), schemaMapping.getToNodeMapping()).forEach(
+                nm -> {
+                    if (nm.getNodeLabel() == null || nm.getMappedColumns().isEmpty())
+                        throw new RuntimeException("Invalid schema mapping JSON file");
+                }
+        );
+
+        if (schemaMapping.getEdgeMapping().getEdgeLabel() == null)
             throw new RuntimeException("Invalid schema mapping JSON file");
-        }
+
+        return schemaMapping;
     }
 }

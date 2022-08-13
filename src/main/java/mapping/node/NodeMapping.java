@@ -1,16 +1,16 @@
 package mapping.node;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 public abstract class NodeMapping {
+
+    @Getter
     private final String nodeLabel;
 
     protected NodeMapping(String nodeLabel) {
         this.nodeLabel = nodeLabel;
-    }
-
-    public String getNodeLabel() {
-        return nodeLabel;
     }
 
     @Override

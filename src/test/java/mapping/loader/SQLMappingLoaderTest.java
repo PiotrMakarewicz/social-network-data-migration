@@ -35,6 +35,8 @@ public class SQLMappingLoaderTest {
         assertNotNull(joinTableMapping.getJoinTable());
         assertNotNull(joinTableMapping.getToTable());
         assertNotNull(joinTableMapping.getFromTable());
+        assertNotNull(joinTableMapping.getFromNode());
+        assertNotNull(joinTableMapping.getToNode());
         assertNotNull(joinTableMapping.getEdgeLabel());
 
         var foreignKeyMappings = edgeMappings.stream()
@@ -48,6 +50,8 @@ public class SQLMappingLoaderTest {
             assertNotNull(fkMapping.getForeignKeyTable());
             assertNotNull(fkMapping.getToTable());
             assertNotNull(fkMapping.getFromTable());
+            assertNotNull(fkMapping.getFromNode());
+            assertNotNull(fkMapping.getToNode());
             assertNotNull(fkMapping.getEdgeLabel());
         }
    }

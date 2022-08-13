@@ -2,12 +2,15 @@ package mapping.edge;
 
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class JoinTableMapping extends SQLEdgeMapping{
-    @Getter private final String joinTable;
-    @Getter private final Map<String, String> mappedColumns;
+    @Getter
+    private final String joinTable;
+
+    private Map<String, String> mappedColumns;
 
     public JoinTableMapping(String edgeLabel, String fromNode, String toNode, String fromTable, String toTable, String joinTable, Map<String, String> mappedColumns) {
         super(edgeLabel, fromNode, toNode, fromTable, toTable);
@@ -22,6 +25,12 @@ public class JoinTableMapping extends SQLEdgeMapping{
         if (!super.equals(o)) return false;
         JoinTableMapping that = (JoinTableMapping) o;
         return getJoinTable().equals(that.getJoinTable()) && getMappedColumns().equals(that.getMappedColumns());
+    }
+
+    public Map<String, String> getMappedColumns() {
+        if (mappedColumns == null)
+            mappedColumns = new HashMap<>();
+        return mappedColumns;
     }
 
     @Override
