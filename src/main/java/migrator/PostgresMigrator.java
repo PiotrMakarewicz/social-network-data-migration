@@ -1,6 +1,6 @@
 package migrator;
 
-import mapping.SchemaMapping;
+import mapping.SQLSchemaMapping;
 import mapping.edge.EdgeMapping;
 import mapping.edge.ForeignKeyMapping;
 import mapping.edge.JoinTableMapping;
@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
-public class PostgresMigrator implements Migrator, AutoCloseable {
+public class PostgresMigrator implements AutoCloseable {
     private final Connection connection;
     private final Driver neo4jDriver;
     private final String postgresHost;
@@ -54,8 +54,7 @@ public class PostgresMigrator implements Migrator, AutoCloseable {
         this.dryRun = dryRun;
     }
 
-    @Override
-    public void migrateData(SchemaMapping schemaMapping) {
+    public void migrateData(SQLSchemaMapping schemaMapping) {
         schemaMapping.getNodeMappings().forEach(this::createNode);
         schemaMapping.getEdgeMappings().forEach(this::createEdge);
     }

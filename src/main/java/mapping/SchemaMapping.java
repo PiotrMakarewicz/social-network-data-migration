@@ -3,31 +3,12 @@ package mapping;
 import mapping.edge.EdgeMapping;
 import mapping.node.NodeMapping;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 public abstract class SchemaMapping {
-    private final Set<NodeMapping> nodeMappings = new HashSet<>();
-    private final Set<EdgeMapping> edgeMappings = new HashSet<>();
-
-    public SchemaMapping(){}
-
-    public void addNodeMapping(NodeMapping nodeMapping){
-        nodeMappings.add(nodeMapping);
-    }
-
-    public void addEdgeMapping(EdgeMapping edgeMapping){
-        edgeMappings.add(edgeMapping);
-    }
-
-    public Set<NodeMapping> getNodeMappings() {
-        return nodeMappings;
-    }
-
-    public Set<EdgeMapping> getEdgeMappings() {
-        return edgeMappings;
-    }
+    protected final Set<NodeMapping> nodeMappings = new HashSet<>();
+    protected final Set<EdgeMapping> edgeMappings = new HashSet<>();
 
     @Override
     public String toString() {

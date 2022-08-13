@@ -1,11 +1,8 @@
 package migrator;
 
 import mapping.CSVSchemaMapping;
-import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
-import mapping.edge.EdgeMapping;
 import mapping.node.CSVNodeMapping;
-import mapping.node.NodeMapping;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -18,10 +15,9 @@ import java.util.Map;
 import java.util.Properties;
 
 // Użycie CSVMigratora wymaga wykomentowania linijki dbms.directories.import w neo4j.conf
-public class CSVMigrator implements Migrator, AutoCloseable {
+public class CSVMigrator implements AutoCloseable {
     private final String configPath;
     private final String dataPath;
-    private final boolean withHeaders;
     private Driver neo4jDriver;
 
     private final String fieldTerminator = "\\t";
@@ -29,7 +25,6 @@ public class CSVMigrator implements Migrator, AutoCloseable {
     public CSVMigrator(String configPath, String dataPath, boolean withHeaders) throws IOException {
         this.configPath = configPath;
         this.dataPath = constructNeo4jDataPath(dataPath);
-        this.withHeaders = withHeaders;
         if (configPath != null) {
             Properties properties = new Properties();
             properties.load(new FileInputStream(configPath));
@@ -40,18 +35,15 @@ public class CSVMigrator implements Migrator, AutoCloseable {
         }
     }
 
-    @Override
-    public void migrateData(SchemaMapping schemaMapping)  {
-        var csvSchemaMapping = (CSVSchemaMapping) schemaMapping;
-        var csvEdgeMapping = (CSVEdgeMapping) csvSchemaMapping.getEdgeMappings().stream().findFirst().get();
-        var fromNodeMapping = (CSVNodeMapping) csvEdgeMapping.getFromNodeMapping();
-        var toNodeMapping = (CSVNodeMapping) csvEdgeMapping.getToNodeMapping();
+    public void migrateData(CSVSchemaMapping csvSchemaMapping)  {
+        var csvEdgeMapping = csvSchemaMapping.getEdgeMapping();
+        var fromNodeMapping = csvSchemaMapping.getFromNodeMapping();
+        var toNodeMapping = csvSchemaMapping.getToNodeMapping();
 
         createIndex(fromNodeMapping);
         createIndex(toNodeMapping);
 
-        loadCSV(csvEdgeMapping, fromNodeMapping, toNodeMapping);
-
+        this.execute(buildLoadCsvQuery(csvEdgeMapping, fromNodeMapping, toNodeMapping));
     }
 
     private void createIndex(CSVNodeMapping nodeMapping) {
@@ -73,14 +65,11 @@ public class CSVMigrator implements Migrator, AutoCloseable {
         this.execute(query);
     }
 
-    private void loadCSV(EdgeMapping csvEdgeMapping, NodeMapping fromNodeMapping, NodeMapping toNodeMapping) {
-        this.execute(buildLoadCsvQuery(csvEdgeMapping, fromNodeMapping, toNodeMapping));
-    }
-
-    public String buildLoadCsvQuery(EdgeMapping csvEdgeMapping, NodeMapping fromNodeMapping, NodeMapping toNodeMapping) {
-        String fromMappedColumns = mappedColumnsToStr(fromNodeMapping);
-        String toMappedColumns = mappedColumnsToStr(toNodeMapping);
-        String edgeMappedColumns = mappedColumnsToStr(csvEdgeMapping);
+    public String buildLoadCsvQuery(CSVEdgeMapping csvEdgeMapping, CSVNodeMapping fromNodeMapping,
+                                    CSVNodeMapping toNodeMapping) {
+        String fromMappedColumns = mappedColumnsToStr(fromNodeMapping.getMappedColumns());
+        String toMappedColumns = mappedColumnsToStr(toNodeMapping.getMappedColumns());
+        String edgeMappedColumns = mappedColumnsToStr(csvEdgeMapping.getMappedColumns());
 
         return """
                 LOAD CSV
@@ -100,14 +89,6 @@ public class CSVMigrator implements Migrator, AutoCloseable {
                         toMappedColumns,
                         csvEdgeMapping.getEdgeLabel(),
                         edgeMappedColumns);
-    }
-
-    private String mappedColumnsToStr(NodeMapping nodeMapping) {
-        return mappedColumnsToStr(((CSVNodeMapping) nodeMapping).getMappedColumns());
-    }
-
-    private String mappedColumnsToStr(EdgeMapping edgeMapping) {
-        return mappedColumnsToStr(((CSVEdgeMapping) edgeMapping).getMappedColumns());
     }
 
     private String mappedColumnsToStr(Map<Integer, String> mappedColumns){
