@@ -1,0 +1,56 @@
+{
+  "nodes": [
+    {
+      "nodeLabel": "Author",
+      "xpath": "/dblp/article/author",
+      "innerTextMappedTo": "name",
+      "mappedAttributes": {},
+      "mappedChildElementInnerTexts": {}
+    },
+    {
+      "nodeLabel": "Publication",
+      "xpath": "/dblp/article",
+      "innerTextMappedTo": null,
+      "mappedAttributes": {
+        "publtype": "type"
+      },
+      "mappedChildElementInnerTexts": {
+        "title": "title",
+        "year": "year"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "edgeLabel": "CollaboratedWith",
+      "edgeType": "child-child",
+      "childNodeLabel": "Author",
+      "mappedParentAttributes": {
+        "mdate": "date"
+      },
+      "mappedParentsChildElementInnerTexts": {
+        "title": "publicationTitle"
+      }
+    },
+    {
+      "edgeLabel": "IsWrittenBy",
+      "edgeType": "parent-to-child",
+      "parentNodeLabel": "Publication",
+      "childNodeLabel": "Author",
+      "mappedParentAttributes": {},
+      "mappedParentsChildElementInnerTexts": {},
+      "mappedChildAttributes": {},
+      "mappedChildsChildElementInnerTexts": {}
+    },
+    {
+      "edgeLabel": "Wrote",
+      "edgeType": "child-to-parent",
+      "parentNodeLabel": "Publication",
+      "childNodeLabel": "Author",
+      "mappedParentAttributes": {},
+      "mappedParentsChildElementInnerTexts": {},
+      "mappedChildAttributes": {},
+      "mappedChildsChildElementInnerTexts": {}
+    }
+  ]
+}
