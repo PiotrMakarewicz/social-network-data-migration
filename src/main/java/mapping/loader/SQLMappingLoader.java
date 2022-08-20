@@ -14,15 +14,20 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.lang.reflect.Type;
 
-public class SQLMappingLoader {
+public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
 
-    public SQLSchemaMapping load(String filename) throws FileNotFoundException {
+    public SQLSchemaMapping load(String filename) {
         Type t = new TypeToken<SQLEdgeMapping>(){}.getType();
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(t, new SQLEdgeMappingDeserializer())
                 .create();
 
-        JsonReader reader = new JsonReader(new FileReader(filename));
+        JsonReader reader;
+        try {
+            reader = new JsonReader(new FileReader(filename));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         SQLSchemaMapping schemaMapping = gson.fromJson(reader, SQLSchemaMapping.class);
 
         validate(schemaMapping);

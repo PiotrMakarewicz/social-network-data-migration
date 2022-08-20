@@ -6,7 +6,7 @@ import lombok.Setter;
 import mapping.edge.CSVEdgeMapping;
 import mapping.node.CSVNodeMapping;
 
-public class CSVSchemaMapping {
+public class CSVSchemaMapping extends SchemaMapping<CSVNodeMapping, CSVEdgeMapping> {
     @Getter @Setter @SerializedName("fromNode")
     private CSVNodeMapping fromNodeMapping;
     @Getter @Setter @SerializedName("toNode")

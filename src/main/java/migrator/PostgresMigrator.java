@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 
-public class PostgresMigrator implements AutoCloseable {
+public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
     private final Connection connection;
     private final Driver neo4jDriver;
     private final String postgresHost;

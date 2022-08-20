@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static utils.CSVUtils.getHeaders;
 
-public class CSVMappingLoader {
+public class CSVMappingLoader implements MappingLoader<CSVSchemaMapping> {
 
     private final boolean withHeaders;
     private final char fieldTerminator = '\t';
@@ -26,13 +26,18 @@ public class CSVMappingLoader {
         this.headers = getHeaders(csvInputPath, fieldTerminator);
     }
 
-    public CSVSchemaMapping load(String configPath) throws FileNotFoundException {
+    public CSVSchemaMapping load(String configPath) {
         Type t = new TypeToken<Map<Integer, String>>(){}.getType();
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(t, new CSVMappedColumnsDeserializer(this.withHeaders, this.headers))
                 .create();
 
-        JsonReader reader = new JsonReader(new FileReader(configPath));
+        JsonReader reader;
+        try {
+            reader = new JsonReader(new FileReader(configPath));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         CSVSchemaMapping schemaMapping = gson.fromJson(reader, CSVSchemaMapping.class);
         List.of(schemaMapping.getFromNodeMapping(), schemaMapping.getToNodeMapping()).forEach(

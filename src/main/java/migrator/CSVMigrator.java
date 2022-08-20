@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Properties;
 
 // Użycie CSVMigratora wymaga wykomentowania linijki dbms.directories.import w neo4j.conf
-public class CSVMigrator implements AutoCloseable {
+public class CSVMigrator implements Migrator<CSVSchemaMapping> {
     private final String configPath;
     private final String dataPath;
     private Driver neo4jDriver;
