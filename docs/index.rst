@@ -16,3 +16,4 @@ Contents:
    graphalgorithms
    configuration
    datasets
+   testing
