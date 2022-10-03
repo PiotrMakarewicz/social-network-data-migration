@@ -1,11 +1,9 @@
 package mapping.loader.interactive;
 
 import mapping.SQLSchemaMapping;
-import mapping.SchemaMapping;
 import mapping.edge.ForeignKeyMapping;
 import mapping.edge.JoinTableMapping;
 import mapping.edge.SQLEdgeMapping;
-import mapping.loader.MappingLoader;
 import mapping.node.SQLNodeMapping;
 import utils.SchemaMetaData;
 import utils.info.DatabaseInfo;
@@ -14,7 +12,7 @@ import utils.info.TableInfo;
 import java.io.*;
 import java.util.*;
 
-public class InteractiveSQLMappingLoader implements MappingLoader {
+public class InteractiveSQLMappingLoader {
 
     private final Map<String, SQLNodeMapping> nodeMappings = new HashMap<>();
     private final Map<String, SQLEdgeMapping> edgeMappings = new HashMap<>();
@@ -33,7 +31,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader {
         }
     }
 
-    public SchemaMapping load(String filename) throws IOException {
+    public SQLSchemaMapping load() throws IOException {
         showHelp();
         do {
             System.out.print("=> ");
@@ -314,7 +312,7 @@ public class InteractiveSQLMappingLoader implements MappingLoader {
         System.out.flush();
     }
 
-    private Map<String, String> createColumnMappings(String table) throws IOException {
+    private Map<String, String> createColumnMappings(String table) {
         Map<String, String> columnMappings = new HashMap<>();
         if (questionYesNo("Add column mappings?")) {
             boolean stopMappingCreation = false;

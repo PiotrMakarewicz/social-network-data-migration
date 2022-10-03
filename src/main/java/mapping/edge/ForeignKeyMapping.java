@@ -1,17 +1,16 @@
 package mapping.edge;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 public class ForeignKeyMapping extends SQLEdgeMapping {
+    @Getter
     private final String foreignKeyTable;
 
     public ForeignKeyMapping(String edgeLabel, String fromNode, String toNode, String fromTable, String toTable, String foreignKeyTable) {
         super(edgeLabel, fromNode, toNode, fromTable, toTable);
         this.foreignKeyTable = foreignKeyTable;
-    }
-
-    public String getForeignKeyTable() {
-        return foreignKeyTable;
     }
 
     @Override

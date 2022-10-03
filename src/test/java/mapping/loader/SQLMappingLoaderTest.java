@@ -1,85 +1,58 @@
 package mapping.loader;
 
-import com.google.gson.Gson;
-import mapping.SchemaMapping;
-import mapping.loader.json.SQLMappingJsonSchema;
+import mapping.SQLSchemaMapping;
+import mapping.edge.ForeignKeyMapping;
+import mapping.edge.JoinTableMapping;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.io.FileNotFoundException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SQLMappingLoaderTest {
+    String sqlMappingsPath = getClass().getClassLoader().getResource("sql_mapping.json").getPath();
 
     @Test
-    void test(){
-        String rawJson = """
-            {
-              "nodes": [
-                {
-                  "sqlTableName": "authors",
-                  "nodeLabel": "Person",
-                  "mappedColumns": {
-                    "id": "id",
-                    "bloglink": "blog_url",
-                    "name": "name"
-                  }
-                },
-                {
-                  "sqlTableName": "comments",
-                  "nodeLabel": "Post",
-                  "mappedColumns": {
-                    "id": "id",
-                    "content": "content",
-                    "date": "timestamp"
-                  }
-                },
-                {
-                  "sqlTableName": "posts",
-                  "nodeLabel": "Post",
-                  "mappedColumns": {
-                    "id": "id",
-                    "content": "content",
-                    "date": "timestamp"
-                  }
-                },
-                {
-                  "sqlTableName": "tags",
-                  "nodeLabel": "Tag",
-                  "mappedColumns": {
-                    "id": "id",
-                    "name": "name"
-                  }
-                }
-              ],
-              "edges": [
-                {
-                  "edgeLabel": "IsAuthor",
-                  "foreignKeyTable": "comments",
-                  "from": "authors",
-                  "to": "comments"
-                },
-                {
-                  "edgeLabel": "RefersTo",
-                  "foreignKeyTable": "comments",
-                  "from": "comments",
-                  "to": "posts"
-                },
-                {
-                  "edgeLabel": "IsTaggedWith",
-                  "joinTable": "posts_tags",
-                  "from": "posts",
-                  "to": "tags",
-                  "mappedColumns": {
-                    "timestamp": "timestamp"
-                  }
-                }
-              ]
-            }
-        """;
-
-        SQLMappingJsonSchema jsonSchema = new Gson().fromJson(rawJson, SQLMappingJsonSchema.class);
+    void test() throws FileNotFoundException {
         var loader = new SQLMappingLoader();
-        SchemaMapping mapping = loader.convertToSchemaMapping(jsonSchema);
-        assertEquals(4, mapping.getNodeMappings().size());
-        assertEquals(3, mapping.getEdgeMappings().size());
+        SQLSchemaMapping mapping = loader.load(sqlMappingsPath);
+
+        var nodeMappings = mapping.getNodeMappings();
+        var edgeMappings = mapping.getEdgeMappings();
+
+        assertEquals(4, nodeMappings.size());
+        assertEquals(3, edgeMappings.size());
+
+        var joinTableMappings = edgeMappings.stream()
+                                            .filter(em -> em instanceof JoinTableMapping)
+                                            .map(em -> (JoinTableMapping) em)
+                                            .toList();
+        assertEquals(1, joinTableMappings.size());
+
+        var joinTableMapping = joinTableMappings.get(0);
+        assertNotNull(joinTableMapping.getMappedColumns());
+        assertNotNull(joinTableMapping.getJoinTable());
+        assertNotNull(joinTableMapping.getToTable());
+        assertNotNull(joinTableMapping.getFromTable());
+        assertNotNull(joinTableMapping.getFromNode());
+        assertNotNull(joinTableMapping.getToNode());
+        assertNotNull(joinTableMapping.getEdgeLabel());
+
+        var foreignKeyMappings = edgeMappings.stream()
+                                                         .filter(em -> em instanceof ForeignKeyMapping)
+                                                         .map(em -> (ForeignKeyMapping) em)
+                                                         .toList();
+
+        assertEquals(2, foreignKeyMappings.size());
+
+        for (ForeignKeyMapping fkMapping: foreignKeyMappings){
+            assertNotNull(fkMapping.getForeignKeyTable());
+            assertNotNull(fkMapping.getToTable());
+            assertNotNull(fkMapping.getFromTable());
+            assertNotNull(fkMapping.getFromNode());
+            assertNotNull(fkMapping.getToNode());
+            assertNotNull(fkMapping.getEdgeLabel());
+        }
    }
 }

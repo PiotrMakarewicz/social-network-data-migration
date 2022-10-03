@@ -1,24 +1,18 @@
 package mapping.node;
 
+import lombok.Getter;
+
 import java.util.Map;
 import java.util.Objects;
 
 public class SQLNodeMapping extends NodeMapping {
-    private final String sqlTableName;
-    private final Map<String, String> mappedColumns;
+    @Getter private final String sqlTableName;
+    @Getter private final Map<String, String> mappedColumns;
 
     public SQLNodeMapping(String nodeLabel, String sqlTableName, Map<String, String> mappedColumns) {
         super(nodeLabel);
         this.sqlTableName = sqlTableName;
         this.mappedColumns = mappedColumns;
-    }
-
-    public String getSqlTableName() {
-        return sqlTableName;
-    }
-
-    public Map<String, String> getMappedColumns() {
-        return mappedColumns;
     }
 
     @Override

@@ -1,12 +1,14 @@
 package mapping.loader.interactive;
 
 import mapping.CSVSchemaMapping;
-import mapping.SchemaMapping;
 import mapping.edge.CSVEdgeMapping;
 import mapping.node.CSVNodeMapping;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static java.lang.Integer.parseInt;
 import static utils.CSVUtils.*;
@@ -38,7 +40,7 @@ public class InteractiveCSVMappingLoader {
         }
     }
 
-    public SchemaMapping load(String filename) throws IOException {
+    public CSVSchemaMapping load() throws IOException {
         showHelp();
         do {
             System.out.print("\n=> ");
@@ -69,9 +71,9 @@ public class InteractiveCSVMappingLoader {
 
         var edgeMapping = new CSVEdgeMapping(edgeLabel, edgeMappedColumns, fromNodeMapping, toNodeMapping);
         var schemaMapping = new CSVSchemaMapping();
-        schemaMapping.addEdgeMapping(edgeMapping);
-        schemaMapping.addNodeMapping(fromNodeMapping);
-        schemaMapping.addNodeMapping(toNodeMapping);
+        schemaMapping.setEdgeMapping(edgeMapping);
+        schemaMapping.setFromNodeMapping(fromNodeMapping);
+        schemaMapping.setToNodeMapping(toNodeMapping);
         return schemaMapping;
     }
 

@@ -1,28 +1,25 @@
 package mapping.edge;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Objects;
 
 public abstract class EdgeMapping {
+
+    @Getter
     private final String edgeLabel;
-    private final String fromNode;
-    private final String toNode;
+
+    @Setter @Getter
+    private String fromNode;
+
+    @Setter @Getter
+    private String toNode;
 
     protected EdgeMapping(String edgeLabel, String fromNode, String toNode) {
         this.edgeLabel = edgeLabel;
         this.fromNode = fromNode;
         this.toNode = toNode;
-    }
-
-    public String getEdgeLabel() {
-        return edgeLabel;
-    }
-
-    public String getFromNode() {
-        return fromNode;
-    }
-
-    public String getToNode() {
-        return toNode;
     }
 
     @Override

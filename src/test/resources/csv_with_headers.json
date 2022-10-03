@@ -1,0 +1,22 @@
+{
+  "fromNode": {
+    "nodeLabel": "Person",
+    "mappedColumns": {
+      "person_one": "id"
+    }
+  },
+
+  "toNode": {
+    "nodeLabel": "Person2",
+    "mappedColumns": {
+      "person_two": "id"
+    }
+  },
+
+  "edge": {
+    "edgeLabel": "InteractsWith",
+    "mappedColumns": {
+      "interaction_date": "creation_date"
+    }
+  }
+}

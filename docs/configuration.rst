@@ -65,19 +65,6 @@ Start systemd service:
 ::
   systemctl start neo4j
 
-Neo4j database - in a docker container 
---------------------------------------
-Instead of installing Neo4j locally, you may run it in a docker container
-::
-
-  docker run \
-    --network=host \
-    -v $PWD/data:/data -v $PWD/plugins:/plugins \
-    -e NEO4J_apoc_export_file_enabled=true \
-    -e NEO4J_apoc_import_file_enabled=true \
-    -e NEO4J_apoc_import_file_use__neo4j__config=true \
-     neo4j
-
 Neo4j authentication setup
 ---------------------------
 
@@ -109,3 +96,9 @@ Install PostgreSQL JDBC connector:
  
  
 Tutorial on how to use APOC library is available [here](https://www.youtube.com/watch?v=e8UfOHJngQA&list=PL9Hl4pk2FsvXEww23lDX_owoKoqqBQpdq&index=5).
+
+
+In case of problems running Neo4j service on a Linux machine, you can check the service logs using:
+::
+
+  sudo journalctl -u neo4j.service --since "2 minutes ago"

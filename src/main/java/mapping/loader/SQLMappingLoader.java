@@ -1,96 +1,66 @@
 package mapping.loader;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import mapping.SQLSchemaMapping;
-import mapping.SchemaMapping;
 import mapping.edge.ForeignKeyMapping;
 import mapping.edge.JoinTableMapping;
-import mapping.loader.json.EdgeJson;
-import mapping.loader.json.SQLMappingJsonSchema;
-import mapping.loader.json.NodeJson;
-import mapping.node.SQLNodeMapping;
+import mapping.edge.SQLEdgeMapping;
+import mapping.loader.json.SQLEdgeMappingDeserializer;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
+import java.lang.reflect.Type;
 
-public class SQLMappingLoader {
+public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
 
-    public SchemaMapping load(String filename) throws FileNotFoundException {
-        SQLMappingJsonSchema jsonSchema = parseJson(filename);
-        return convertToSchemaMapping(jsonSchema);
-    }
-    protected SQLMappingJsonSchema parseJson(String filename) throws FileNotFoundException {
-        Gson gson = new Gson();
-        JsonReader reader = new JsonReader(new FileReader(filename));
-        return gson.fromJson(reader, SQLMappingJsonSchema.class);
-    }
+    public SQLSchemaMapping load(String filename) {
+        Type t = new TypeToken<SQLEdgeMapping>(){}.getType();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(t, new SQLEdgeMappingDeserializer())
+                .create();
 
-    protected SchemaMapping convertToSchemaMapping(SQLMappingJsonSchema jsonSchema){
-        SQLSchemaMapping mapping = new SQLSchemaMapping();
-
-        for (NodeJson node: jsonSchema.getNodes()){
-            if (node.getNodeLabel() == null || node.getSqlTableName() == null){
-                throw new RuntimeException("Invalid schema mapping JSON file");
-            }
-
-            var mappedColumns = node.getMappedColumns();
-            if (mappedColumns == null)
-                mappedColumns = new HashMap<>();
-
-            mapping.addNodeMapping(new SQLNodeMapping(
-                    node.getNodeLabel(),
-                    node.getSqlTableName(),
-                    mappedColumns
-            ));
+        JsonReader reader;
+        try {
+            reader = new JsonReader(new FileReader(filename));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         }
+        SQLSchemaMapping schemaMapping = gson.fromJson(reader, SQLSchemaMapping.class);
 
-        for (EdgeJson edge: jsonSchema.getEdges()){
-            if (edge.getEdgeLabel() == null
-                    || edge.getFrom() == null
-                    || edge.getTo() == null
-                    || (edge.getForeignKeyTable() == null
-                        && edge.getJoinTable() == null)
-            ) {
-                throw new RuntimeException("Invalid schema mapping JSON file");
-            }
-            else if (edge.getJoinTable() != null) {
-                var mappedColumns = edge.getMappedColumns();
-                if (mappedColumns == null)
-                    mappedColumns = new HashMap<>();
+        validate(schemaMapping);
 
-                mapping.addEdgeMapping(
-                        new JoinTableMapping(
-                                edge.getEdgeLabel(),
-                                mapping.getNodeLabelForTableName(edge.getFrom()).get(),
-                                mapping.getNodeLabelForTableName(edge.getTo()).get(),
-                                edge.getFrom(),
-                                edge.getTo(),
-                                edge.getJoinTable(),
-                                mappedColumns
-                        )
-                );
-            }
-            else {
-                if (!edge.getForeignKeyTable().equals(edge.getFrom())
-                    && !edge.getForeignKeyTable().equals(edge.getTo())) {
-                    throw new RuntimeException("Invalid schema mapping JSON file: foreign key must be part" +
-                            "of %s or %s table".formatted(edge.getFrom(), edge.getTo()));
+        setNodeLabelsInEdgeMappings(schemaMapping);
+
+        return schemaMapping;
+    }
+
+    private void validate(SQLSchemaMapping schemaMapping) {
+        schemaMapping.getNodeMappings().forEach(
+                nm -> {
+                    if (nm.getSqlTableName() == null || nm.getMappedColumns().isEmpty() || nm.getNodeLabel() == null)
+                        throw new RuntimeException("Invalid schema mapping JSON file");
+                });
+
+        schemaMapping.getEdgeMappings().forEach(
+                em -> {
+                    if (em.getFromTable() == null || em.getToTable() == null || em.getEdgeLabel() == null)
+                        throw new RuntimeException("Invalid schema mapping JSON file");
+                    if (em instanceof ForeignKeyMapping fkm && fkm.getForeignKeyTable() == null)
+                        throw new RuntimeException("Invalid schema mapping JSON file");
+                    else if (em instanceof JoinTableMapping jtm && jtm.getJoinTable() == null)
+                        throw new RuntimeException("Invalid schema mapping JSON file");
+                });
+    }
+
+    private void setNodeLabelsInEdgeMappings(SQLSchemaMapping mapping){
+        mapping.getEdgeMappings().forEach(
+                em -> {
+                    em.setFromNode(mapping.getNodeLabelForTableName(em.getFromTable()).get());
+                    em.setToNode(mapping.getNodeLabelForTableName(em.getToTable()).get());
                 }
-
-                mapping.addEdgeMapping(
-                        new ForeignKeyMapping(
-                                edge.getEdgeLabel(),
-                                mapping.getNodeLabelForTableName(edge.getFrom()).get(),
-                                mapping.getNodeLabelForTableName(edge.getTo()).get(),
-                                edge.getFrom(),
-                                edge.getTo(),
-                                edge.getForeignKeyTable()
-                        )
-                );
-            }
-        }
-        return mapping;
+        );
     }
 }

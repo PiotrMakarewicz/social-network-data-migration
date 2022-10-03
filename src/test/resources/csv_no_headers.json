@@ -1,0 +1,22 @@
+{
+  "fromNode": {
+    "nodeLabel": "User",
+    "mappedColumns": {
+      "0": "id"
+    }
+  },
+
+  "toNode": {
+    "nodeLabel": "User2",
+    "mappedColumns": {
+      "1": "id"
+    }
+  },
+
+  "edge": {
+    "edgeLabel": "PostedAtWallOf",
+    "mappedColumns": {
+      "2": "creation_date"
+    }
+  }
+}
