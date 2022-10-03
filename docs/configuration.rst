@@ -101,4 +101,4 @@ Tutorial on how to use APOC library is available [here](https://www.youtube.com/
 In case of problems running Neo4j service on a Linux machine, you can check the service logs using:
 ::
 
-  sudo journalctl -u neo4j.service --since today
+  sudo journalctl -u neo4j.service --since "2 minutes ago"
