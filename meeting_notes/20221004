@@ -1,0 +1,7 @@
+## Pytania/Propozycje
+- Zastąpić rzadko używany format XML obsługą innych formatów (AVRO, Parquet...)
+- Testy użyteczności mapowania interaktywnego
+- Interfejs webowy (tworzenie mapowania, być może wizualizacja danych wejściowych, wizualizacja schematu wyjściowego
+- Dockeryzacja PostgreSQL (do ładowania backupów), Neo4j (do testów), dockeryzacja samej aplikacji chyba zbędna
+- Zapytać o priorytety
+- Kompletny zakres funkcjonalności (wymagany na pracownię projektową) - co ma być zrobione, aby praca inżynierska była uznana za zrobioną w 100%
