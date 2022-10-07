@@ -11,13 +11,20 @@ Przed każdym z testów wyczyść bazę neo4j operacją:
 TEST: Import danych z bazy Salon24 (PostgreSQL)
 -------------------------------------------------
 ::
-	java Application 'config_examples/salon24.properties' 'salon24_mapping.json'
+	java -jar Application config_examples/salon24.properties config_examples/salon24_mapping.json
 
 
-TEST: Import danych z pliku CSV
+TEST: Import danych z pliku CSV z nagłówkami
 ---------------------------------
 ::
-	java Application 'config_examples/csv.properties' 'csv_mapping.json'
+	java -jar Application --csv config_examples/csv.properties src/test/java/resources/test.csv
+src/test/resources/csv_with_headers.json
+
+TEST: Import danych z pliku CSV bez nagłówków
+---------------------------------
+::
+	java -jar Application --csv config_examples/csv.properties src/test/java/resources/test.csv
+src/test/resources/csv_no_headers.json
 
 
 TODO import danych z Huffington Post, XML w dwóch wariantach

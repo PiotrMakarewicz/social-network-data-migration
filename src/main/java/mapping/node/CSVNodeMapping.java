@@ -18,9 +18,9 @@ public class CSVNodeMapping extends NodeMapping {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CSVNodeMapping that)) return false;
+        if (!(o instanceof CSVNodeMapping)) return false;
         if (!super.equals(o)) return false;
-        return Objects.equals(mappedColumns, that.mappedColumns);
+        return Objects.equals(mappedColumns, ((CSVNodeMapping) o).mappedColumns);
     }
 
     @Override
@@ -30,13 +30,10 @@ public class CSVNodeMapping extends NodeMapping {
 
     @Override
     public String toString() {
-        String header = super.toString() +
-                """
-                Mapped columns:
-                """;
+        String header =  super.toString() + "Mapped columns:\n";
         StringBuilder builder = new StringBuilder(header);
         for (Map.Entry<Integer, String> mapping : mappedColumns.entrySet()) {
-            builder.append("\t%d -> %s\n".formatted(mapping.getKey(), mapping.getValue()));
+            builder.append(String.format("\t%d -> %s\n", mapping.getKey(), mapping.getValue()));
         }
         return builder.toString();
     }

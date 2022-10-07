@@ -37,10 +37,9 @@ public abstract class EdgeMapping {
 
     @Override
     public String toString() {
-        return """
-               Edge label:        %s
-               Source node:       %s
-               Destination node:  %s
-               """.formatted(edgeLabel, fromNode, toNode);
+        return String.format(
+               "Edge label:        %s\n" +
+               "Source node:       %s\n" +
+               "Destination node:  %s", edgeLabel, fromNode, toNode);
     }
 }

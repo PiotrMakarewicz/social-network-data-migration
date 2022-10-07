@@ -55,12 +55,11 @@ public class CSVMigrator implements Migrator<CSVSchemaMapping> {
 
         String propertiesStr = String.join(", ", properties);
 
-        String query = """
-                CREATE INDEX IF NOT EXISTS
-                FOR (p:%s)
-                ON (%s)
-                """
-                .formatted(nodeMapping.getNodeLabel(), propertiesStr);
+        String query = String.format(
+                "CREATE INDEX IF NOT EXISTS\n" +
+                "FOR (p:%s)\n" +
+                "ON (%s)\n",
+                nodeMapping.getNodeLabel(), propertiesStr);
 
         this.execute(query);
     }
@@ -71,16 +70,14 @@ public class CSVMigrator implements Migrator<CSVSchemaMapping> {
         String toMappedColumns = mappedColumnsToStr(toNodeMapping.getMappedColumns());
         String edgeMappedColumns = mappedColumnsToStr(csvEdgeMapping.getMappedColumns());
 
-        return """
-                LOAD CSV
-                    FROM '%s'
-                    AS line
-                    FIELDTERMINATOR '%s'
-                MERGE (p1:%s {%s})
-                MERGE (p2:%s {%s})
-                CREATE (p1)-[e:%s {%s}]->(p2)
-                """
-                .formatted(
+        return String.format(
+                "LOAD CSV\n" +
+                "    FROM '%s'\n" +
+                "    AS line\n" +
+                "    FIELDTERMINATOR '%s'\n" +
+                "MERGE (p1:%s {%s})\n" +
+                "MERGE (p2:%s {%s})\n" +
+                "CREATE (p1)-[e:%s {%s}]->(p2)",
                         this.dataPath,
                         this.fieldTerminator,
                         fromNodeMapping.getNodeLabel(),
@@ -95,7 +92,7 @@ public class CSVMigrator implements Migrator<CSVSchemaMapping> {
         ArrayList<String> chunks = new ArrayList<>();
         for (var column: mappedColumns.keySet()){
             var attribute = mappedColumns.get(column);
-            var chunk = "%s: line[%d]".formatted(attribute, column);
+            var chunk = String.format("%s: line[%d]", attribute, column);
             chunks.add(chunk);
         }
         return String.join(", ", chunks);

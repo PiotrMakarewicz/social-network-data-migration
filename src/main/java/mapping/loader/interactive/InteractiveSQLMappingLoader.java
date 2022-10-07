@@ -75,31 +75,29 @@ public class InteractiveSQLMappingLoader {
     }
 
     private void showHelp(){
-        String help = """
-                List of available commands:
-                help
-                \tShows list of available commands.
-                add node mapping
-                \tAllows to create new node mapping.
-                add edge mapping
-                \tAllows to create new edge mapping.
-                list node mappings
-                \tShows detailed list of created node mappings.
-                list edge mappings
-                \tShows detailed list of created edge mappings.
-                delete node mapping <name>
-                \tDeletes node mapping.
-                delete edge mapping <name>
-                \tDeletes edge mapping.
-                show table [name]
-                \tShows detailed info about table. If no name is provided shows info about all tables in database.
-                list tables
-                \tShows names of tables in database.
-                quit
-                \tQuits interactive mapping creation and proceeds to migrate data.
-                
-                Use CTRL+D when asked for input to stop mapping creation.
-                """;
+        String help =
+                "List of available commands:\n" +
+                "help\n" +
+                "\tShows list of available commands.\n" +
+                "add node mapping\n" +
+                "\tAllows to create new node mapping.\n" +
+                "add edge mapping\n" +
+                "\tAllows to create new edge mapping.\n" +
+                "list node mappings\n" +
+                "\tShows detailed list of created node mappings.\n" +
+                "list edge mappings\n" +
+                "\tShows detailed list of created edge mappings.\n" +
+                "delete node mapping <name>\n" +
+                "\tDeletes node mapping.\n" +
+                "delete edge mapping <name>\n" +
+                "\tDeletes edge mapping.\n" +
+                "show table [name]\n" +
+                "\tShows detailed info about table. If no name is provided shows info about all tables in database.\n" +
+                "list tables\n" +
+                "\tShows names of tables in database.\n" +
+                "quit\n" +
+                "\tQuits interactive mapping creation and proceeds to migrate data.\n\n" +
+                "Use CTRL+D when asked for input to stop mapping creation.";
         System.out.println(help);
     }
     private void addNodeMapping() throws IOException {

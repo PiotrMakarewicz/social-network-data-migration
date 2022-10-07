@@ -64,11 +64,10 @@ public class DatabaseInfo {
         if ((rowLen - tableName.length()) % 2 == 1)
             namePaddingRight += " ";
 
-        String header = """
-                %s
-                |%s%s%s|
-                %s
-                """.formatted(roof, namePaddingLeft, tableName, namePaddingRight, roof);
+        String header = String.format(
+                "%s\n" +
+                "|%s%s%s|\n" +
+                "%s\n", roof, namePaddingLeft, tableName, namePaddingRight, roof);
         stringBuilder.append(header);
 
         for (ColumnInfo column : table.columns) {
@@ -85,9 +84,7 @@ public class DatabaseInfo {
             }
             String foreignColumnPadding = " ".repeat((maxForeignColumnLength() - foreignColumnName.length()));
 
-            String row = """
-                    | %s%s | %s%s | %s%s |
-                    """.formatted(
+            String row = String.format("| %s%s | %s%s | %s%s |",
                     column.columnName,
                     columnNamePadding,
                     column.type,

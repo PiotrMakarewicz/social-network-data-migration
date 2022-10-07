@@ -29,15 +29,14 @@ public class CSVMigratorTest {
         //then
         String actual = migrator.buildLoadCsvQuery(edgeMapping, fromNodeMapping, toNodeMapping);
 
-        String expected = """
-                LOAD CSV
-                    FROM 'file:///data.csv'
-                    AS line
-                    FIELDTERMINATOR '\\t'
-                MERGE (p1:FromNodeLabel {from_node_attr: line[0]})
-                MERGE (p2:ToNodeLabel {to_node_attr: line[1]})
-                CREATE (p1)-[e:EdgeLabel {edge_attr_one: line[2]}]->(p2)
-                """;
+        String expected =
+                "LOAD CSV\n" +
+                "    FROM 'file:///data.csv'\n" +
+                "    AS line\n" +
+                "    FIELDTERMINATOR '\\t'\n" +
+                "MERGE (p1:FromNodeLabel {from_node_attr: line[0]})\n" +
+                "MERGE (p2:ToNodeLabel {to_node_attr: line[1]})\n" +
+                "CREATE (p1)-[e:EdgeLabel {edge_attr_one: line[2]}]->(p2)";
 
         assertEquals(expected, actual);
     }

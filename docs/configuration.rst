@@ -84,7 +84,7 @@ Loading data from PostgreSQL to Neo4j using APOC library and JDBC
 Install APOC plugin:
 ::
 
-  wget https://github.com/neo4j-contrib/neo4j-apoc procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar
+  wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.3/apoc-4.4.0.3-all.jar
   sudo mv apoc-4.4.0.3-all.jar /var/lib/neo4j/plugins/
 
 

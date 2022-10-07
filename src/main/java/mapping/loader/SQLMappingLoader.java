@@ -29,11 +29,8 @@ public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
             throw new RuntimeException(e);
         }
         SQLSchemaMapping schemaMapping = gson.fromJson(reader, SQLSchemaMapping.class);
-
-        validate(schemaMapping);
-
         setNodeLabelsInEdgeMappings(schemaMapping);
-
+        validate(schemaMapping);
         return schemaMapping;
     }
 
@@ -48,9 +45,9 @@ public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
                 em -> {
                     if (em.getFromTable() == null || em.getToTable() == null || em.getEdgeLabel() == null)
                         throw new RuntimeException("Invalid schema mapping JSON file");
-                    if (em instanceof ForeignKeyMapping fkm && fkm.getForeignKeyTable() == null)
+                    if (em instanceof ForeignKeyMapping && ((ForeignKeyMapping) em).getForeignKeyTable() == null)
                         throw new RuntimeException("Invalid schema mapping JSON file");
-                    else if (em instanceof JoinTableMapping jtm && jtm.getJoinTable() == null)
+                    if (em instanceof JoinTableMapping && ((JoinTableMapping) em).getJoinTable() == null)
                         throw new RuntimeException("Invalid schema mapping JSON file");
                 });
     }

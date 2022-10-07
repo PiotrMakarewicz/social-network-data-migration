@@ -45,7 +45,7 @@ public class CSVUtils {
                             }
                             if (index == -1) {
                                 System.out.println(headers);
-                                throw new RuntimeException("There is no header %s in the CSV file".formatted(searchedKey));
+                                throw new RuntimeException(String.format("There is no header %s in the CSV file", searchedKey));
                             }
                                 return index;
                         },

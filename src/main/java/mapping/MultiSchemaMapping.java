@@ -27,8 +27,7 @@ public abstract class MultiSchemaMapping<N extends NodeMapping, E extends EdgeMa
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Node mappings:\n");
+        var builder = new StringBuilder("Node mappings:\n");
         nodeMappings.forEach(nodeMapping -> builder.append(nodeMapping.toString()).append("\n"));
         builder.append("\nEdge mappings:\n");
         edgeMappings.forEach(edgeMapping -> builder.append(edgeMapping.toString()).append("\n"));

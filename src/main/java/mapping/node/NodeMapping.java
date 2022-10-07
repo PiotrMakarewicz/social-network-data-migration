@@ -28,6 +28,6 @@ public abstract class NodeMapping {
 
     @Override
     public String toString() {
-        return "Node label:        %s\n".formatted(nodeLabel);
+        return String.format("Node label:        %s\n", nodeLabel);
     }
 }

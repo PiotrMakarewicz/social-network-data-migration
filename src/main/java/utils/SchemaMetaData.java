@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SchemaMetaData implements AutoCloseable {
     private final Connection connection;
@@ -53,23 +54,23 @@ public class SchemaMetaData implements AutoCloseable {
         return foreignKeys
                 .stream()
                 .filter(fkColumnInfo -> fkColumnInfo.referencedTableName().equals(referencedTableName))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public List<ColumnInfo> getPrimaryKeyColumns(String tableName) {
         List<ColumnInfo> primaryKeyColumns = new ArrayList<>();
-        String sql = """
-                SELECT kcu.column_name, kcu.table_name, c.data_type FROM information_schema.key_column_usage kcu
-                INNER JOIN information_schema.table_constraints tc
-                ON kcu.constraint_name = tc.constraint_name
-                AND kcu.table_name = tc.table_name
-                AND kcu.table_schema = tc.table_schema
-                INNER JOIN information_schema.columns c
-                ON kcu.column_name = c.column_name
-                AND kcu.table_name = c.table_name
-                WHERE kcu.table_schema = 'public' AND kcu.table_name = ?
-                AND tc.constraint_type = 'PRIMARY KEY';
-                """;
+        String sql =
+                "SELECT kcu.column_name, kcu.table_name, c.data_type FROM information_schema.key_column_usage kcu\n" +
+                "INNER JOIN information_schema.table_constraints tc\n" +
+                "ON kcu.constraint_name = tc.constraint_name\n" +
+                "AND kcu.table_name = tc.table_name\n" +
+                "AND kcu.table_schema = tc.table_schema\n" +
+                "INNER JOIN information_schema.columns c\n" +
+                "ON kcu.column_name = c.column_name\n" +
+                "AND kcu.table_name = c.table_name\n" +
+                "WHERE kcu.table_schema = 'public' AND kcu.table_name = ?\n" +
+                "AND tc.constraint_type = 'PRIMARY KEY';";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setObject(1, tableName);
             ResultSet rs = ps.executeQuery();
@@ -89,28 +90,28 @@ public class SchemaMetaData implements AutoCloseable {
 
     public List<ForeignKeyInfo> getForeignKeyInfo(String tableName) {
         List<ForeignKeyInfo> result = new ArrayList<>();
-        String sql = """
-                SELECT kcu_from.column_name, kcu_from.table_name, c_from.data_type, kcu_to.column_name, kcu_to.table_name, c_to.data_type
-                FROM information_schema.table_constraints tc
-                INNER JOIN information_schema.key_column_usage kcu_from
-                ON tc.table_schema = kcu_from.table_schema
-                AND tc.table_name = kcu_from.table_name
-                AND tc.constraint_name = kcu_from.constraint_name
-                AND tc.constraint_type = 'FOREIGN KEY'
-                AND tc.table_name = ?
-                INNER JOIN information_schema.referential_constraints rc
-                ON kcu_from.constraint_name = rc.constraint_name
-                AND kcu_from.constraint_schema = rc.constraint_schema
-                INNER JOIN information_schema.key_column_usage kcu_to
-                ON kcu_to.constraint_name = rc.unique_constraint_name
-                AND kcu_to.constraint_schema = unique_constraint_schema
-                INNER JOIN information_schema.columns c_from
-                ON kcu_from.column_name = c_from.column_name
-                AND kcu_from.table_name = c_from.table_name
-                INNER JOIN information_schema.columns c_to
-                ON kcu_to.column_name = c_to.column_name
-                AND kcu_to.table_name = c_to.table_name;
-                """;
+        String sql =
+                "SELECT kcu_from.column_name, kcu_from.table_name, c_from.data_type, kcu_to.column_name, kcu_to.table_name, c_to.data_type\n" +
+                "FROM information_schema.table_constraints tc\n" +
+                "INNER JOIN information_schema.key_column_usage kcu_from\n" +
+                "ON tc.table_schema = kcu_from.table_schema\n" +
+                "AND tc.table_name = kcu_from.table_name\n" +
+                "AND tc.constraint_name = kcu_from.constraint_name\n" +
+                "AND tc.constraint_type = 'FOREIGN KEY'\n" +
+                "AND tc.table_name = ?\n" +
+                "INNER JOIN information_schema.referential_constraints rc\n" +
+                "ON kcu_from.constraint_name = rc.constraint_name\n" +
+                "AND kcu_from.constraint_schema = rc.constraint_schema\n" +
+                "INNER JOIN information_schema.key_column_usage kcu_to\n" +
+                "ON kcu_to.constraint_name = rc.unique_constraint_name\n" +
+                "AND kcu_to.constraint_schema = unique_constraint_schema\n" +
+                "INNER JOIN information_schema.columns c_from\n" +
+                "ON kcu_from.column_name = c_from.column_name\n" +
+                "AND kcu_from.table_name = c_from.table_name\n" +
+                "INNER JOIN information_schema.columns c_to\n" +
+                "ON kcu_to.column_name = c_to.column_name\n" +
+                "AND kcu_to.table_name = c_to.table_name;";
+
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setObject(1, tableName);
@@ -139,11 +140,10 @@ public class SchemaMetaData implements AutoCloseable {
     }
 
     public List<String> getColumnNames(String tableName) {
-        String sql = """
-                SELECT column_name FROM information_schema.columns  
-                WHERE table_schema = 'public' AND table_name = ?
-                ORDER BY ordinal_position
-                """;
+        String sql =
+                "SELECT column_name FROM information_schema.columns\n" +
+                "WHERE table_schema = 'public' AND table_name = ?\n" +
+                "ORDER BY ordinal_position;";
         List<String> columns = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql)){
             statement.setString(1, tableName);
@@ -184,10 +184,7 @@ public class SchemaMetaData implements AutoCloseable {
 
     private List<TableInfo> getTables() {
         List<TableInfo> tables = new ArrayList<>();
-        String sql = """
-                SELECT table_name FROM information_schema.tables t
-                WHERE t.table_schema = 'public'
-                """;
+        String sql = "SELECT table_name FROM information_schema.tables t WHERE t.table_schema = 'public'";
         try (Statement statement = connection.createStatement()){
             ResultSet rs = statement.executeQuery(sql);
             while (rs.next()) {
