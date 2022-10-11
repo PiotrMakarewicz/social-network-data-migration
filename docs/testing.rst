@@ -24,7 +24,7 @@ TEST: Import danych z pliku CSV bez nagłówków
 ---------------------------------
 ::
 	java -jar Application --csv config_examples/csv.properties src/test/java/resources/test.csv
-src/test/resources/csv_no_headers.json
+src/test/resources/csv_no_headers.json --no-headers
 
 
 TODO import danych z Huffington Post, XML w dwóch wariantach
