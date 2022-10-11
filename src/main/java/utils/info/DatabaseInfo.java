@@ -84,7 +84,7 @@ public class DatabaseInfo {
             }
             String foreignColumnPadding = " ".repeat((maxForeignColumnLength() - foreignColumnName.length()));
 
-            String row = String.format("| %s%s | %s%s | %s%s |",
+            String row = String.format("| %s%s | %s%s | %s%s |\n",
                     column.columnName,
                     columnNamePadding,
                     column.type,

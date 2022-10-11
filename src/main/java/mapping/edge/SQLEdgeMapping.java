@@ -34,7 +34,7 @@ public abstract class SQLEdgeMapping extends EdgeMapping {
     @Override
     public String toString() {
         return super.toString() + String.format(
-                "Source table:      %s\n" +
+                "\nSource table:      %s\n" +
                 "Destination table: %s\n",
                 fromTable, toTable);
     }

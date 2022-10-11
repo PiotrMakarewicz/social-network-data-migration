@@ -18,7 +18,7 @@ public class InteractiveSQLMappingLoader {
     private final Map<String, SQLEdgeMapping> edgeMappings = new HashMap<>();
     private int nodeCounter = 0;
     private int edgeCounter = 0;
-    private final Console in = System.console();
+    private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private final DatabaseInfo databaseInfo;
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
@@ -97,7 +97,7 @@ public class InteractiveSQLMappingLoader {
                 "\tShows names of tables in database.\n" +
                 "quit\n" +
                 "\tQuits interactive mapping creation and proceeds to migrate data.\n\n" +
-                "Use CTRL+D when asked for input to stop mapping creation.";
+                "Use ENTER when asked for input to stop mapping creation.";
         System.out.println(help);
     }
     private void addNodeMapping() throws IOException {
@@ -105,7 +105,7 @@ public class InteractiveSQLMappingLoader {
         do {
             System.out.print("Node label: ");
             node = in.readLine();
-            if (node == null) {
+            if (node.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
                     return;
             } else {
@@ -117,7 +117,7 @@ public class InteractiveSQLMappingLoader {
         do {
             System.out.print("Table name: ");
             table = in.readLine();
-            if (table == null) {
+            if (table.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
                     return;
                 else
@@ -143,7 +143,7 @@ public class InteractiveSQLMappingLoader {
         do {
             System.out.print("Edge label: ");
             name = in.readLine();
-            if (name == null) {
+            if (name.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
                     return;
             } else {
@@ -156,7 +156,7 @@ public class InteractiveSQLMappingLoader {
         do {
             System.out.println("Source table: ");
             fromTable = in.readLine();
-            if (fromTable == null) {
+            if (fromTable.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
                     return;
                 else
@@ -175,7 +175,7 @@ public class InteractiveSQLMappingLoader {
         do {
             System.out.println("Destination table: ");
             toTable = in.readLine();
-            if (toTable == null) {
+            if (toTable.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
                     return;
                 else
@@ -194,7 +194,7 @@ public class InteractiveSQLMappingLoader {
         do {
             System.out.println("Choose mapping type (foreign key/join table): ");
             type = in.readLine();
-            if (type == null) {
+            if (type.isBlank()) {
                 if (questionYesNo("Stop mapping creation?"))
                     return;
                 else
@@ -215,7 +215,7 @@ public class InteractiveSQLMappingLoader {
             do {
                 System.out.println("Table with foreign key: ");
                 foreignKeyTable = in.readLine();
-                if (foreignKeyTable == null) {
+                if (foreignKeyTable.isBlank()) {
                     if (questionYesNo("Stop mapping creation?"))
                         return;
                     else
@@ -244,7 +244,7 @@ public class InteractiveSQLMappingLoader {
             do {
                 System.out.println("Join table: ");
                 joinTable = in.readLine();
-                if (joinTable == null) {
+                if (joinTable.isBlank()) {
                     if (questionYesNo("Stop mapping creation?"))
                         return;
                     else
@@ -310,7 +310,7 @@ public class InteractiveSQLMappingLoader {
         System.out.flush();
     }
 
-    private Map<String, String> createColumnMappings(String table) {
+    private Map<String, String> createColumnMappings(String table) throws IOException {
         Map<String, String> columnMappings = new HashMap<>();
         if (questionYesNo("Add column mappings?")) {
             boolean stopMappingCreation = false;
@@ -320,7 +320,7 @@ public class InteractiveSQLMappingLoader {
                 do {
                     System.out.print("Column name: ");
                     column = in.readLine();
-                    if (column == null) {
+                    if (column.isBlank()) {
                         if (questionYesNo("Stop column mapping creation?")) {
                             stopMappingCreation = true;
                             break;
@@ -340,7 +340,7 @@ public class InteractiveSQLMappingLoader {
                 do {
                     System.out.println("Node/Edge property name: ");
                     prop = in.readLine();
-                    if (prop == null) {
+                    if (prop.isBlank()) {
                         if (questionYesNo("Stop current mapping creation?")) {
                             if (questionYesNo("Stop column mapping creation?"))
                                 stopMappingCreation = true;
@@ -363,7 +363,7 @@ public class InteractiveSQLMappingLoader {
         return columnMappings;
     }
 
-    private boolean questionYesNo(String prompt){
+    private boolean questionYesNo(String prompt) throws IOException {
         while (true) {
             System.out.println(prompt + " (y/n)");
             System.out.flush();
