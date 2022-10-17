@@ -6,6 +6,7 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import java.util.Optional;
 
 public class SQLSchemaMapping extends MultiSchemaMapping<SQLNodeMapping, SQLEdgeMapping> {
+    public SQLSchemaMapping(){}
 
     public Optional<String> getNodeLabelForTableName(String tableName) {
         return this.getNodeMappings()

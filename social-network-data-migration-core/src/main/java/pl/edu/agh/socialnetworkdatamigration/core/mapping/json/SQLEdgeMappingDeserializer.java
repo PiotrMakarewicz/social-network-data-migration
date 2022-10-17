@@ -1,4 +1,4 @@
-package pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.json;
+package pl.edu.agh.socialnetworkdatamigration.core.mapping.json;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;

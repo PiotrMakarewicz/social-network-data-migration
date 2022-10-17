@@ -2,10 +2,10 @@ package pl.edu.agh.socialnetworkdatamigration.cli;
 
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.CSVMappingLoader;
+import pl.edu.agh.socialnetworkdatamigration.cli.mappingloader.CSVMappingLoader;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveCSVMappingCreator;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveSQLMappingCreator;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.SQLMappingLoader;
+import pl.edu.agh.socialnetworkdatamigration.cli.mappingloader.SQLMappingLoader;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.PostgresMigrator;
 
