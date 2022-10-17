@@ -63,9 +63,9 @@ public class Application {
 
     private static void printUsage() {
         System.out.println(
-                "Usage: java Application <config-path> <mapping-path>\n" +
-                "       java Application --csv <config-path> <data-path> <mapping-path> [--no-headers]\n" +
-                "       java Application --i <config-path>\n" +
-                "       java Application --csv --i <config-path> <data-path> [--no-headers]");
+                "Usage: java -jar Application <config-path> <mapping-path>\n" +
+                "       java -jar Application --csv <config-path> <data-path> <mapping-path> [--no-headers]\n" +
+                "       java -jar Application --i <config-path>\n" +
+                "       java -jar Application --csv --i <config-path> <data-path> [--no-headers]");
     }
 }
