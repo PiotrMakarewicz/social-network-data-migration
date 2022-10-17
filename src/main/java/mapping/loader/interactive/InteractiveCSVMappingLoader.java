@@ -134,7 +134,7 @@ public class InteractiveCSVMappingLoader {
             System.out.println("\nEdge mapped columns: ");
             StringBuilder builder = new StringBuilder();
             for (Map.Entry<Integer, String> mapping : edgeMappedColumns.entrySet()) {
-                builder.append("\t%d -> %s\n".formatted(mapping.getKey(), mapping.getValue()));
+                builder.append(String.format("\t%d -> %s\n", mapping.getKey(), mapping.getValue()));
             }
             System.out.println(builder);
         }
@@ -142,25 +142,23 @@ public class InteractiveCSVMappingLoader {
 
 
     private void showHelp() {
-        String help = """
-                List of available commands:
-                help
-                \tShows list of available commands.
-                set from node mapping
-                \tAllows to create or edit the source node mapping.
-                set to node mapping
-                \tAllows to create or edit the destination node mapping.
-                set edge mapping
-                \tAllows to create or edit the edge mapping.
-                show mappings
-                \tShows a detailed list of created mappings.
-                head
-                \tShows the first 10 rows of the dataset.
-                start migration
-                \tFinishes interactive mapping creation and proceeds to migrate data.
-
-                Use ENTER when asked for input to stop mapping creation.
-                """;
+        String help =
+                "List of available commands:\n" +
+                "help\n" +
+                "\tShows list of available commands.\n" +
+                "set from node mapping\n" +
+                "\tAllows to create or edit the source node mapping.\n" +
+                "set to node mapping\n" +
+                "\tAllows to create or edit the destination node mapping.\n" +
+                "set edge mapping\n" +
+                "\tAllows to create or edit the edge mapping.\n" +
+                "show mappings\n" +
+                "\tShows a detailed list of created mappings.\n" +
+                "head\n" +
+                "\tShows the first 10 rows of the dataset.\n" +
+                "start migration\n" +
+                "\tFinishes interactive mapping creation and proceeds to migrate data.\n\n" +
+                "Use ENTER when asked for input to stop mapping creation.\n";
         System.out.println(help);
     }
 

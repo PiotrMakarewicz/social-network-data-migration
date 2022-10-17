@@ -6,6 +6,7 @@ import mapping.edge.JoinTableMapping;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,7 +28,7 @@ public class SQLMappingLoaderTest {
         var joinTableMappings = edgeMappings.stream()
                                             .filter(em -> em instanceof JoinTableMapping)
                                             .map(em -> (JoinTableMapping) em)
-                                            .toList();
+                                            .collect(Collectors.toList());
         assertEquals(1, joinTableMappings.size());
 
         var joinTableMapping = joinTableMappings.get(0);
@@ -42,7 +43,7 @@ public class SQLMappingLoaderTest {
         var foreignKeyMappings = edgeMappings.stream()
                                                          .filter(em -> em instanceof ForeignKeyMapping)
                                                          .map(em -> (ForeignKeyMapping) em)
-                                                         .toList();
+                                                         .collect(Collectors.toList());
 
         assertEquals(2, foreignKeyMappings.size());
 

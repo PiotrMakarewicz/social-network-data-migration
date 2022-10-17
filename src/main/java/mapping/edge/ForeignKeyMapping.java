@@ -29,9 +29,6 @@ public class ForeignKeyMapping extends SQLEdgeMapping {
 
     @Override
     public String toString() {
-        return super.toString() +
-                """
-                Foreign key table: %s
-                """.formatted(foreignKeyTable);
+        return super.toString() + String.format("Foreign key table: %s\n", foreignKeyTable);
     }
 }

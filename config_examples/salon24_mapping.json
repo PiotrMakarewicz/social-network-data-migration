@@ -44,13 +44,13 @@
   "edges": [
     {
       "edgeLabel": "IsAuthorOf",
-      "foreignKey": "posts.author_id",
+      "foreignKeyTable": "posts",
       "from": "authors",
       "to": "posts"
     },
     {
       "edgeLabel": "IsParentCommentOf",
-      "foreignKey": "comments.parentcomment_id",
+      "foreignKeyTable": "comments",
       "from": "comments",
       "to": "comments"
     },

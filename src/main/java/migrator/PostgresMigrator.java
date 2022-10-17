@@ -21,6 +21,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
     private final Connection connection;
@@ -65,39 +66,39 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
 
         String tableName = sqlNodeMapping.getSqlTableName();
 
-        String loadJdbcCall = "CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row"
-                .formatted(postgresHost,
+        String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
+                        postgresHost,
                         postgresDB,
                         postgresUser,
                         postgresPassword,
                         tableName);
 
         StringBuilder mappedColumns = new StringBuilder();
-        mappedColumns.append("__table_name:'%s',".formatted(tableName));
+        mappedColumns.append(String.format("__table_name:'%s',", tableName));
         sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
-            mappedColumns.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
+            mappedColumns.append(String.format("%s:coalesce(row.%s, 'NULL'),", attribute, column)); // null values
+            // represented as 'NULL'
         });
         mappedColumns.setLength(mappedColumns.length() - 1); // delete trailing comma
 
         StringBuilder primaryKeyColumns = new StringBuilder();
         schemaMetaData.getPrimaryKeyColumns(tableName).forEach(column -> {
-            primaryKeyColumns.append("__%s:row.%s,".formatted(
+            primaryKeyColumns.append(String.format("__%s:row.%s,",
                     column.columnName,
                     column.columnName
             ));
         });
         primaryKeyColumns.setLength(primaryKeyColumns.length() - 1); // delete trailing comma
 
-        String call = """
-                CALL apoc.periodic.iterate(
-                '%s',
-                "CREATE (n:%s{%s, %s})",
-                {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
-                """.formatted(
+        String call = String.format(
+                "CALL apoc.periodic.iterate(\n" +
+                "'%s',\n" +
+                "\"CREATE (n:%s{%s, %s})\",\n" +
+                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches\n",
                     loadJdbcCall,
                     sqlNodeMapping.getNodeLabel(),
-                    mappedColumns.toString(),
-                    primaryKeyColumns.toString()
+                    mappedColumns,
+                    primaryKeyColumns
                 );
 
         this.execute(call);
@@ -121,8 +122,8 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
                 foreignKeyTable.equals(toTable) ? fromTable : toTable
         );
 
-        String loadJdbcCall = "CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row"
-                .formatted(postgresHost,
+        String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
+                        postgresHost,
                         postgresDB,
                         postgresUser,
                         postgresPassword,
@@ -130,7 +131,7 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
 
         StringBuilder foreignKeyClause = new StringBuilder();
         for (ForeignKeyInfo foreignKey : foreignKeys){
-            foreignKeyClause.append(" %s.__%s = row.%s AND".formatted(
+            foreignKeyClause.append(String.format(" %s.__%s = row.%s AND",
                     foreignKey.tableName().equals(fromTable) ? "b" : "a",
                     foreignKey.referencedColumnName(),
                     foreignKey.columnName()
@@ -141,7 +142,7 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
         StringBuilder primaryKeyClause = new StringBuilder();
         List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(foreignKeyTable);
         for (ColumnInfo primaryKeyColumn : primaryKeyColumns) {
-            primaryKeyClause.append(" %s.__%s = row.%s AND".formatted(
+            primaryKeyClause.append(String.format(" %s.__%s = row.%s AND",
                     foreignKeyTable.equals(fromTable) ? "a" : "b",
                     primaryKeyColumn.columnName,
                     primaryKeyColumn.columnName
@@ -149,26 +150,25 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
         }
         primaryKeyClause.setLength(primaryKeyClause.length() - 3); // delete trailing AND
 
-        String tableNameClause = " a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+        String tableNameClause = String.format(" a.__table_name = '%s' AND b.__table_name = '%s'",
                 fromTable,
                 toTable
         );
 
-        String call = """
-                CALL apoc.periodic.iterate(
-                '%s',
-                "MATCH
-                    (a:%s),
-                    (b:%s)
-                WHERE %s AND %s AND %s
-                CREATE (a)-[r:%s]->(b)",
-                {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
-                """.formatted(
+        String call = String.format(
+                "CALL apoc.periodic.iterate(\n" +
+                "'%s',\n" +
+                "\"MATCH\n" +
+                "    (a:%s),\n" +
+                "    (b:%s)\n" +
+                "WHERE %s AND %s AND %s\n" +
+                "CREATE (a)-[r:%s]->(b)\",\n" +
+                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
                     loadJdbcCall,
                     edgeMapping.getFromNode(),
                     edgeMapping.getToNode(),
-                    foreignKeyClause.toString(),
-                    primaryKeyClause.toString(),
+                    foreignKeyClause,
+                    primaryKeyClause,
                     tableNameClause,
                     edgeMapping.getEdgeLabel()
                 );
@@ -177,8 +177,8 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
     }
 
     private void createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
-        String loadJdbcCall = "CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row"
-                .formatted(postgresHost,
+        String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
+                        postgresHost,
                         postgresDB,
                         postgresUser,
                         postgresPassword,
@@ -196,7 +196,7 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
 
         StringBuilder fromTableForeignKeyClause = new StringBuilder();
         fromTableForeignKeys.forEach(foreignKey -> {
-            fromTableForeignKeyClause.append(" a.__%s = row.%s AND".formatted(
+            fromTableForeignKeyClause.append(String.format(" a.__%s = row.%s AND",
                     foreignKey.referencedColumnName(),
                     foreignKey.columnName()
             ));
@@ -205,43 +205,43 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
 
         StringBuilder toTableForeignKeyClause = new StringBuilder();
         toTableForeignKeys.forEach(foreignKey -> {
-            toTableForeignKeyClause.append(" b.__%s = row.%s AND".formatted(
+            toTableForeignKeyClause.append(String.format(" b.__%s = row.%s AND",
                     foreignKey.referencedColumnName(),
                     foreignKey.columnName()
             ));
         });
         toTableForeignKeyClause.setLength(toTableForeignKeyClause.length() - 3);
 
-        String tableNameClause = " a.__table_name = '%s' AND b.__table_name = '%s'".formatted(
+        String tableNameClause = String.format(" a.__table_name = '%s' AND b.__table_name = '%s'",
                 edgeMapping.getFromTable(),
                 edgeMapping.getToTable()
         );
 
         StringBuilder mappedColumns = new StringBuilder();
         edgeMapping.getMappedColumns().forEach((column, attribute) -> {
-            mappedColumns.append("%s:coalesce(row.%s, 'NULL'),".formatted(attribute, column)); // null values represented as 'NULL'
+            mappedColumns.append(String.format("%s:coalesce(row.%s, 'NULL'),", attribute, column)); // null values
+            // represented as 'NULL'
         });
         if (edgeMapping.getMappedColumns().size() != 0)
             mappedColumns.setLength(mappedColumns.length() - 1); // delete trailing comma
 
-        String call = """
-                CALL apoc.periodic.iterate(
-                '%s',
-                "MATCH
-                    (a:%s),
-                    (b:%s)
-                WHERE %s AND %s AND %s
-                CREATE (a)-[r:%s{%s}]->(b)",
-                {batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches
-                """.formatted(
+        String call = String.format(
+                "CALL apoc.periodic.iterate(" +
+                "'%s'," +
+                "\"MATCH" +
+                "    (a:%s)," +
+                "    (b:%s)" +
+                "WHERE %s AND %s AND %s" +
+                "CREATE (a)-[r:%s{%s}]->(b)\"," +
+                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
                 loadJdbcCall,
                 edgeMapping.getFromNode(),
                 edgeMapping.getToNode(),
-                fromTableForeignKeyClause.toString(),
-                toTableForeignKeyClause.toString(),
+                fromTableForeignKeyClause,
+                toTableForeignKeyClause,
                 tableNameClause,
                 edgeMapping.getEdgeLabel(),
-                mappedColumns.toString()
+                mappedColumns
         );
 
         this.execute(call);
@@ -271,13 +271,14 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
                 .getPrimaryKeyColumns(tableName)
                 .stream()
                 .map(column -> column.columnName)
-                .toList();
+                .collect(Collectors.toList());
 
-        String call = "CREATE INDEX %s IF NOT EXISTS FOR (n:%s) ON ("
-                .formatted((nodeLabel + "_" + tableName), nodeLabel);
+        String call = String.format("CREATE INDEX %s IF NOT EXISTS FOR (n:%s) ON (",
+                (nodeLabel + "_" + tableName),
+                nodeLabel);
         StringBuilder callBuilder = new StringBuilder(call);
         primaryKeyColumns.forEach(column -> {
-            callBuilder.append("n.__%s,".formatted(column));
+            callBuilder.append(String.format("n.__%s,", column));
         });
         callBuilder.append("n.__table_name)");
         this.execute(callBuilder.toString());

@@ -62,10 +62,10 @@ public class Application {
     }
 
     private static void printUsage() {
-        System.out.println("""
-                Usage: java Application <config-path> <mapping-path>
-                       java Application --csv <config-path> <data-path> <mapping-path> [--no-headers]
-                       java Application --i <config-path>
-                       java Application --csv --i <config-path> <data-path> [--no-headers]""");
+        System.out.println(
+                "Usage: java -jar Application <config-path> <mapping-path>\n" +
+                "       java -jar Application --csv <config-path> <data-path> <mapping-path> [--no-headers]\n" +
+                "       java -jar Application --i <config-path>\n" +
+                "       java -jar Application --csv --i <config-path> <data-path> [--no-headers]");
     }
 }

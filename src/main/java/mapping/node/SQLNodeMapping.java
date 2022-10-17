@@ -32,13 +32,11 @@ public class SQLNodeMapping extends NodeMapping {
     @Override
     public String toString() {
         String header =  super.toString() +
-                """
-                Table name:        %s
-                Mapped columns:
-                """.formatted(sqlTableName);
+                String.format("Table name:        %s\n", sqlTableName) +
+                "Mapped columns:\n";
         StringBuilder builder = new StringBuilder(header);
         for (Map.Entry<String, String> mapping : mappedColumns.entrySet()) {
-            builder.append("\t%s -> %s\n".formatted(mapping.getKey(), mapping.getValue()));
+            builder.append(String.format("\t%s -> %s\n", mapping.getKey(), mapping.getValue()));
         }
         return builder.toString();
     }

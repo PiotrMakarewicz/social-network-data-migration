@@ -41,13 +41,13 @@ public class JoinTableMapping extends SQLEdgeMapping{
     @Override
     public String toString() {
         String header =  super.toString() +
-                """
-                Join table:        %s
-                Mapped columns:
-                """.formatted(joinTable);
+                String.format(
+                "Join table:        %s\n" +
+                "Mapped columns:\n",
+                        joinTable);
         StringBuilder builder = new StringBuilder(header);
         for (Map.Entry<String, String> mapping : mappedColumns.entrySet()) {
-            builder.append("\t%s -> %s\n".formatted(mapping.getKey(), mapping.getValue()));
+            builder.append(String.format("\t%s -> %s\n", mapping.getKey(), mapping.getValue()));
         }
         return builder.toString();
     }
