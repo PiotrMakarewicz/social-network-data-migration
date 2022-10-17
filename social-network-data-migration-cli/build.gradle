@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'io.freefair.lombok'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':social-network-data-migration-core')
+//    implementation 'com.google.code.gson:gson:2.9.0'
+//    implementation 'org.neo4j.driver:neo4j-java-driver:4.4.5'
+//    implementation 'org.postgresql:postgresql:42.3.3'
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes "Main-Class": "pl.edu.agh.socialnetworkdatamigration.cli.SocialNetworkDataMigrationCLI"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    archiveFileName = "SocialNetworkDataMigrationCLI.jar"
+}

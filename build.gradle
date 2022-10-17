@@ -1,37 +1,17 @@
 plugins {
     id 'java'
-    id "io.freefair.lombok" version "6.5.0.3"
+    id "io.freefair.lombok" version "6.5.1"
 }
-
-group 'org.example'
-version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'org.neo4j.driver:neo4j-java-driver:4.4.5'
-    implementation 'org.postgresql:postgresql:42.3.3'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-}
+allprojects {
+    group 'pl.edu.agh.socialnetworkdatamigration'
+    version '1.0-SNAPSHOT'
 
-test {
-    useJUnitPlatform()
-}
-
-jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    manifest {
-        attributes "Main-Class": "Application"
+    test {
+        useJUnitPlatform()
     }
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-
-    archiveFileName = "Application"
 }
