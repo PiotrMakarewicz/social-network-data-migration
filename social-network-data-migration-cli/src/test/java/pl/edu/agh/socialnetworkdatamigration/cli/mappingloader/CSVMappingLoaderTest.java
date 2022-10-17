@@ -1,11 +1,12 @@
 package pl.edu.agh.socialnetworkdatamigration.cli.mappingloader;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.CSVEdgeMapping;
 
 import java.io.FileNotFoundException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CSVMappingLoaderTest {
     String csvInputPath = getClass().getClassLoader().getResource("test.csv").getPath();
@@ -20,20 +21,20 @@ public class CSVMappingLoaderTest {
         var to = mapping.getToNodeMapping();
         var edge = mapping.getEdgeMapping();
 
-        Assertions.assertNotNull(from);
-        Assertions.assertNotNull(to);
-        Assertions.assertNotNull(edge);
-        Assertions.assertNotNull(edge.getEdgeLabel());
+        assertNotNull(from);
+        assertNotNull(to);
+        assertNotNull(edge);
+        assertNotNull(edge.getEdgeLabel());
 
-        Assertions.assertInstanceOf(CSVSchemaMapping.class, mapping);
-        Assertions.assertInstanceOf(CSVEdgeMapping.class, edge);
+        assertInstanceOf(CSVSchemaMapping.class, mapping);
+        assertInstanceOf(CSVEdgeMapping.class, edge);
 
-        Assertions.assertEquals(from.getNodeLabel(), "Person");
-        Assertions.assertEquals(to.getNodeLabel(), "Person2");
+        assertEquals(from.getNodeLabel(), "Person");
+        assertEquals(to.getNodeLabel(), "Person2");
 
-        Assertions.assertTrue(from.getMappedColumns().containsKey(0));
-        Assertions.assertTrue(to.getMappedColumns().containsKey(1));
-        Assertions.assertTrue(edge.getMappedColumns().containsKey(2));
+        assertTrue(from.getMappedColumns().containsKey(0));
+        assertTrue(to.getMappedColumns().containsKey(1));
+        assertTrue(edge.getMappedColumns().containsKey(2));
     }
 
     @Test
@@ -44,19 +45,19 @@ public class CSVMappingLoaderTest {
         var to = mapping.getToNodeMapping();
         var edge = mapping.getEdgeMapping();
 
-        Assertions.assertNotNull(from);
-        Assertions.assertNotNull(to);
-        Assertions.assertNotNull(edge);
-        Assertions.assertNotNull(edge.getEdgeLabel());
+        assertNotNull(from);
+        assertNotNull(to);
+        assertNotNull(edge);
+        assertNotNull(edge.getEdgeLabel());
 
-        Assertions.assertInstanceOf(CSVSchemaMapping.class, mapping);
-        Assertions.assertInstanceOf(CSVEdgeMapping.class, edge);
+        assertInstanceOf(CSVSchemaMapping.class, mapping);
+        assertInstanceOf(CSVEdgeMapping.class, edge);
 
-        Assertions.assertEquals(from.getNodeLabel(), "User");
-        Assertions.assertEquals(to.getNodeLabel(), "User2");
+        assertEquals(from.getNodeLabel(), "User");
+        assertEquals(to.getNodeLabel(), "User2");
 
-        Assertions.assertTrue(from.getMappedColumns().containsKey(0));
-        Assertions.assertTrue(to.getMappedColumns().containsKey(1));
-        Assertions.assertTrue(edge.getMappedColumns().containsKey(2));
+        assertTrue(from.getMappedColumns().containsKey(0));
+        assertTrue(to.getMappedColumns().containsKey(1));
+        assertTrue(edge.getMappedColumns().containsKey(2));
     }
 }

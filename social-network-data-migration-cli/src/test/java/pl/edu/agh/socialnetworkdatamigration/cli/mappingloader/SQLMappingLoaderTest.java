@@ -1,6 +1,5 @@
 package pl.edu.agh.socialnetworkdatamigration.cli.mappingloader;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
@@ -8,6 +7,9 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 
 import java.io.FileNotFoundException;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SQLMappingLoaderTest {
     String sqlMappingsPath = getClass().getClassLoader().getResource("sql_mapping.json").getPath();
@@ -20,38 +22,38 @@ public class SQLMappingLoaderTest {
         var nodeMappings = mapping.getNodeMappings();
         var edgeMappings = mapping.getEdgeMappings();
 
-        Assertions.assertEquals(4, nodeMappings.size());
-        Assertions.assertEquals(3, edgeMappings.size());
+        assertEquals(4, nodeMappings.size());
+        assertEquals(3, edgeMappings.size());
 
         var joinTableMappings = edgeMappings.stream()
                                             .filter(em -> em instanceof JoinTableMapping)
                                             .map(em -> (JoinTableMapping) em)
                                             .collect(Collectors.toList());
-        Assertions.assertEquals(1, joinTableMappings.size());
+        assertEquals(1, joinTableMappings.size());
 
         var joinTableMapping = joinTableMappings.get(0);
-        Assertions.assertNotNull(joinTableMapping.getMappedColumns());
-        Assertions.assertNotNull(joinTableMapping.getJoinTable());
-        Assertions.assertNotNull(joinTableMapping.getToTable());
-        Assertions.assertNotNull(joinTableMapping.getFromTable());
-        Assertions.assertNotNull(joinTableMapping.getFromNode());
-        Assertions.assertNotNull(joinTableMapping.getToNode());
-        Assertions.assertNotNull(joinTableMapping.getEdgeLabel());
+        assertNotNull(joinTableMapping.getMappedColumns());
+        assertNotNull(joinTableMapping.getJoinTable());
+        assertNotNull(joinTableMapping.getToTable());
+        assertNotNull(joinTableMapping.getFromTable());
+        assertNotNull(joinTableMapping.getFromNode());
+        assertNotNull(joinTableMapping.getToNode());
+        assertNotNull(joinTableMapping.getEdgeLabel());
 
         var foreignKeyMappings = edgeMappings.stream()
                                                          .filter(em -> em instanceof ForeignKeyMapping)
                                                          .map(em -> (ForeignKeyMapping) em)
                                                          .collect(Collectors.toList());
 
-        Assertions.assertEquals(2, foreignKeyMappings.size());
+        assertEquals(2, foreignKeyMappings.size());
 
         for (ForeignKeyMapping fkMapping: foreignKeyMappings){
-            Assertions.assertNotNull(fkMapping.getForeignKeyTable());
-            Assertions.assertNotNull(fkMapping.getToTable());
-            Assertions.assertNotNull(fkMapping.getFromTable());
-            Assertions.assertNotNull(fkMapping.getFromNode());
-            Assertions.assertNotNull(fkMapping.getToNode());
-            Assertions.assertNotNull(fkMapping.getEdgeLabel());
+            assertNotNull(fkMapping.getForeignKeyTable());
+            assertNotNull(fkMapping.getToTable());
+            assertNotNull(fkMapping.getFromTable());
+            assertNotNull(fkMapping.getFromNode());
+            assertNotNull(fkMapping.getToNode());
+            assertNotNull(fkMapping.getEdgeLabel());
         }
    }
 }
