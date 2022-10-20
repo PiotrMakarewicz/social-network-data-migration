@@ -6,11 +6,9 @@ import org.neo4j.driver.GraphDatabase;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveCSVMappingCreator;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveSQLMappingCreator;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.SchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.CSVMappingLoader;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.SQLMappingLoader;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.PostgresMigrator;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
@@ -93,11 +91,19 @@ public class SocialNetworkDataMigrationCLI {
         String postgresDB = properties.getProperty("postgresDB");
         String postgresUser = properties.getProperty("postgresUser");
         String postgresPassword = properties.getProperty("postgresPassword");
+        String neo4jHost = properties.getProperty("neo4jHost");
+        String neo4jUser = properties.getProperty("neo4jUser");
+        String neo4jPassword = properties.getProperty("neo4jPassword");
 
-        try (SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword)) {
+        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+             SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
+             PostgresMigrator migrator = new PostgresMigrator(neo4jDriver, schemaMetaData)) {
             var creator = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo());
-            SchemaMapping<SQLNodeMapping, SQLEdgeMapping> mapping = creator.createInteractively();
-            System.out.println(mapping);
+            SQLSchemaMapping mapping = creator.createInteractively();
+            long start = System.currentTimeMillis();
+            migrator.migrateData(mapping);
+            long end = System.currentTimeMillis();
+            System.out.printf("Time taken: %s ms", end - start);
         } catch (SQLException e) {
             throw new RuntimeException("Couldn't establish connection with Postgres database: " + e);
         }
