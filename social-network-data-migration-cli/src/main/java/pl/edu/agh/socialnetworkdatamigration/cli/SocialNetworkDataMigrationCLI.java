@@ -1,5 +1,8 @@
 package pl.edu.agh.socialnetworkdatamigration.cli;
 
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveCSVMappingCreator;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveSQLMappingCreator;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
@@ -42,7 +45,19 @@ public class SocialNetworkDataMigrationCLI {
         String jsonStr = Files.readString(Path.of(mappingsPath));
         var schemaMapping = mappingLoader.loadFromJson(jsonStr);
 
-        try (var migrator = new PostgresMigrator(configPath)) {
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(configPath));
+        String postgresHost = properties.getProperty("postgresHost");
+        String postgresDB = properties.getProperty("postgresDB");
+        String postgresUser = properties.getProperty("postgresUser");
+        String postgresPassword = properties.getProperty("postgresPassword");
+        String neo4jHost = properties.getProperty("neo4jHost");
+        String neo4jUser = properties.getProperty("neo4jUser");
+        String neo4jPassword = properties.getProperty("neo4jPassword");
+
+        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+             SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
+             PostgresMigrator migrator = new PostgresMigrator(neo4jDriver, schemaMetaData)) {
             migrator.migrateData(schemaMapping);
         }
     }
@@ -78,6 +93,7 @@ public class SocialNetworkDataMigrationCLI {
         String postgresDB = properties.getProperty("postgresDB");
         String postgresUser = properties.getProperty("postgresUser");
         String postgresPassword = properties.getProperty("postgresPassword");
+
         try (SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword)) {
             var creator = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo());
             SchemaMapping<SQLNodeMapping, SQLEdgeMapping> mapping = creator.createInteractively();

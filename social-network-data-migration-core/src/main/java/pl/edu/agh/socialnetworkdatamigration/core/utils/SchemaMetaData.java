@@ -8,21 +8,16 @@ import pl.edu.agh.socialnetworkdatamigration.core.utils.info.TableInfo;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class SchemaMetaData implements AutoCloseable {
     private final Connection connection;
-
-
-    public SchemaMetaData(String postgresHost, String postgresDB, String postgresUser, String postgresPassword) {
-        try {
-            this.connection = DriverManager.getConnection("jdbc:postgresql://" + postgresHost + "/" +
-                    postgresDB, postgresUser, postgresPassword);
-        } catch (SQLException e) {
-            throw new RuntimeException("Couldn't establish connection with database. Nested exception: ", e);
-        }
-    }
+    private final String postgresHost;
+    private final String postgresDB;
+    private final String postgresUser;
+    private final String postgresPassword;
 
     public static SchemaMetaData createFromConfig(String configPath) throws IOException {
         Properties properties = new Properties();
@@ -32,6 +27,31 @@ public class SchemaMetaData implements AutoCloseable {
         String postgresUser = properties.getProperty("postgresUser");
         String postgresPassword = properties.getProperty("postgresPassword");
         return new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
+    }
+
+    public SchemaMetaData(String postgresHost, String postgresDB, String postgresUser, String postgresPassword) throws SQLException {
+        this.connection = DriverManager.getConnection("jdbc:postgresql://" + postgresHost + "/" +
+                postgresDB, postgresUser, postgresPassword);
+        this.postgresHost = postgresHost;
+        this.postgresDB = postgresDB;
+        this.postgresUser = postgresUser;
+        this.postgresPassword = postgresPassword;
+    }
+
+    public String getPostgresHost() {
+        return postgresHost;
+    }
+
+    public String getPostgresDB() {
+        return postgresDB;
+    }
+
+    public String getPostgresUser() {
+        return postgresUser;
+    }
+
+    public String getPostgresPassword() {
+        return postgresPassword;
     }
 
     /**
@@ -195,7 +215,7 @@ public class SchemaMetaData implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() throws SQLException {
         connection.close();
     }
 }
