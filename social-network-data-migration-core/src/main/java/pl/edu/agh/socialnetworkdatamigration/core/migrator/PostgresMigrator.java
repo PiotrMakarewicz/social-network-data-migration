@@ -1,30 +1,27 @@
 package pl.edu.agh.socialnetworkdatamigration.core.migrator;
 
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.EdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.NodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ColumnInfo;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ForeignKeyInfo;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
-    private final Connection connection;
     private final Driver neo4jDriver;
     private final String postgresHost;
     private final String postgresDB;
@@ -44,8 +41,6 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
         String neo4jUser = properties.getProperty("neo4jUser");
         String neo4jPassword = properties.getProperty("neo4jPassword");
 
-        this.connection = DriverManager.getConnection("jdbc:postgresql://" + postgresHost + "/" +
-                postgresDB, postgresUser, postgresPassword);
         this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
         this.schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
     }
@@ -286,7 +281,6 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
 
     @Override
     public void close() throws Exception {
-        this.connection.close();
         this.neo4jDriver.close();
         this.schemaMetaData.close();
     }
