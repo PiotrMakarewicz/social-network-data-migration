@@ -16,13 +16,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
-    private final Driver neo4jDriver;
+public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
     private final SchemaMetaData schemaMetaData;
     private boolean dryRun;
 
     public PostgresMigrator(Driver neo4jDriver, SchemaMetaData schemaMetaData) {
-        this.neo4jDriver = neo4jDriver;
+        super(neo4jDriver);
         this.schemaMetaData = schemaMetaData;
     }
 

@@ -22,17 +22,19 @@ import java.util.Properties;
 
 public class SocialNetworkDataMigrationCLI {
     public static void main(String[] args) throws Exception {
-        if (args.length == 2 && args[0].equals("--i"))
+        if (args.length == 2 && args[0].equals("--i")) {
             interactiveSQL(args);
-        else if (args.length == 2)
+        } else if (args.length == 2) {
             SQLmigration(args);
-        else if (args[0].equals("--csv"))
-            if (args[1].equals("--i"))
+        } else if (args[0].equals("--csv")) {
+            if (args[1].equals("--i")) {
                 interactiveCSV(args);
-            else
+            } else {
                 CSVmigration(args);
-        else
+            }
+        } else {
             printUsage();
+        }
     }
 
     private static void SQLmigration(String[] args) throws Exception {
@@ -73,11 +75,20 @@ public class SocialNetworkDataMigrationCLI {
         String csvDataPath = args[2];
         String mappingsPath = args[3];
 
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(configPath));
+        String neo4jHost = properties.getProperty("neo4jHost");
+        String neo4jUser = properties.getProperty("neo4jUser");
+        String neo4jPassword = properties.getProperty("neo4jPassword");
+
         var mappingLoader = new CSVMappingLoader(csvDataPath, withHeaders);
         String jsonStr = Files.readString(Path.of(mappingsPath));
         var schemaMapping = mappingLoader.loadFromJson(jsonStr);
 
-        try (var migrator = new CSVMigrator(configPath, csvDataPath, withHeaders)) {
+
+        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+             var migrator = new CSVMigrator(neo4jDriver, csvDataPath, withHeaders)) {
+            CSVMappingLoader mappingLoader = new CSVMappingLoader(args[2], withHeaders);
             migrator.migrateData(schemaMapping);
         }
     }
@@ -110,10 +121,19 @@ public class SocialNetworkDataMigrationCLI {
     }
 
     private static void interactiveCSV(String[] args) throws Exception {
+        String configPath = args[2];
+
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(configPath));
+        String neo4jHost = properties.getProperty("neo4jHost");
+        String neo4jUser = properties.getProperty("neo4jUser");
+        String neo4jPassword = properties.getProperty("neo4jPassword");
+
         boolean withHeaders = args.length == 6 && args[4].equals("--no-headers");
         InteractiveCSVMappingCreator mappingLoader = new InteractiveCSVMappingCreator(args[3], withHeaders);
         CSVSchemaMapping mapping = mappingLoader.createInteractively();
-        try (var migrator = new CSVMigrator(args[2], args[3], withHeaders)) {
+        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+             var migrator = new CSVMigrator(neo4jDriver, args[3], withHeaders)) {
             migrator.migrateData(mapping);
         }
     }

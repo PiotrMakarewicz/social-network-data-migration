@@ -1,41 +1,27 @@
 package pl.edu.agh.socialnetworkdatamigration.core.migrator;
 
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.CSVEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.CSVNodeMapping;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Properties;
 
 // Użycie CSVMigratora wymaga wykomentowania linijki dbms.directories.import w neo4j.conf
-public class CSVMigrator implements Migrator<CSVSchemaMapping> {
-    private final String configPath;
+public class CSVMigrator extends Migrator<CSVSchemaMapping> {
     private final String dataPath;
-    private Driver neo4jDriver;
 
     private final String fieldTerminator = "\\t";
 
-    public CSVMigrator(String configPath, String dataPath, boolean withHeaders) throws IOException {
-        this.configPath = configPath;
+    public CSVMigrator(Driver neo4jDriver, String dataPath, boolean withHeaders) throws IOException {
+        super(neo4jDriver);
         this.dataPath = constructNeo4jDataPath(dataPath);
-        if (configPath != null) {
-            Properties properties = new Properties();
-            properties.load(new FileInputStream(configPath));
-            String neo4jHost = properties.getProperty("neo4jHost");
-            String neo4jUser = properties.getProperty("neo4jUser");
-            String neo4jPassword = properties.getProperty("neo4jPassword");
-            this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-        }
     }
 
-    public void migrateData(CSVSchemaMapping csvSchemaMapping)  {
+    public void migrateData(CSVSchemaMapping csvSchemaMapping) {
         var csvEdgeMapping = csvSchemaMapping.getEdgeMapping();
         var fromNodeMapping = csvSchemaMapping.getFromNodeMapping();
         var toNodeMapping = csvSchemaMapping.getToNodeMapping();
