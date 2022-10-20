@@ -1,17 +1,23 @@
 package pl.edu.agh.socialnetworkdatamigration.cli;
 
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.SchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.CSVMappingLoader;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveCSVMappingCreator;
 import pl.edu.agh.socialnetworkdatamigration.cli.interactive.InteractiveSQLMappingCreator;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.SchemaMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.CSVMappingLoader;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.SQLMappingLoader;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.PostgresMigrator;
+import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
+import java.util.Properties;
 
 public class SocialNetworkDataMigrationCLI {
     public static void main(String[] args) throws Exception {
@@ -64,9 +70,21 @@ public class SocialNetworkDataMigrationCLI {
     }
 
     private static void interactiveSQL(String[] args) throws IOException {
-        var creator = new InteractiveSQLMappingCreator(args[1]);
-        SchemaMapping mapping = creator.createInteractively();
-        System.out.println(mapping);
+        String configPath = args[1];
+
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(configPath));
+        String postgresHost = properties.getProperty("postgresHost");
+        String postgresDB = properties.getProperty("postgresDB");
+        String postgresUser = properties.getProperty("postgresUser");
+        String postgresPassword = properties.getProperty("postgresPassword");
+        try (SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword)) {
+            var creator = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo());
+            SchemaMapping<SQLNodeMapping, SQLEdgeMapping> mapping = creator.createInteractively();
+            System.out.println(mapping);
+        } catch (SQLException e) {
+            throw new RuntimeException("Couldn't establish connection with Postgres database: " + e);
+        }
     }
 
     private static void interactiveCSV(String[] args) throws Exception {

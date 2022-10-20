@@ -5,7 +5,6 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.DatabaseInfo;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.TableInfo;
 
@@ -13,7 +12,6 @@ import java.io.*;
 import java.util.*;
 
 public class InteractiveSQLMappingCreator {
-
     private final Map<String, SQLNodeMapping> nodeMappings = new HashMap<>();
     private final Map<String, SQLEdgeMapping> edgeMappings = new HashMap<>();
     private int nodeCounter = 0;
@@ -22,13 +20,8 @@ public class InteractiveSQLMappingCreator {
     private final DatabaseInfo databaseInfo;
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
-    public InteractiveSQLMappingCreator(String configPath) {
-        try (var schemaMetaData = SchemaMetaData.createFromConfig(configPath)) {
-            this.databaseInfo = schemaMetaData.getDatabaseInfo();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Couldn't open or close connection with database: " + e.getMessage());
-        }
+    public InteractiveSQLMappingCreator(DatabaseInfo databaseInfo) {
+        this.databaseInfo = databaseInfo;
     }
 
     public SQLSchemaMapping createInteractively() throws IOException {
