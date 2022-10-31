@@ -38,9 +38,13 @@ public class PostgreSchemaControllerIntegrationTest {
 
     @Test
     public void postgreSchemaEndpointReturns200() throws Exception {
-        mvc.perform( MockMvcRequestBuilders
-                        .post("/employees")
-                        .content(asJsonString(new PostgreConnectionParams(postgresqlContainer.getHost(), POSTGRES_DBNAME, POSTGRES_USER, POSTGRES_PASSWORD)))
+        var dbConnectionParams = new PostgreConnectionParams(postgresqlContainer.getHost(), POSTGRES_DBNAME, POSTGRES_USER, POSTGRES_PASSWORD);
+        var requestPayload = asJsonString(dbConnectionParams);
+
+        mvc.perform(MockMvcRequestBuilders
+                        .post("/postgre_schema")
+                        .content(requestPayload)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());

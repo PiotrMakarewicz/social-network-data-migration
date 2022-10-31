@@ -7,7 +7,7 @@ import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 
 @RestController
 public class PostgreSchemaController {
-    @PostMapping("/postgre_schema")
+    @PostMapping(value = "/postgre_schema", consumes = "application/json")
     public SchemaMetaData fetchPostgreSchema(@RequestBody PostgreConnectionParams params){
         return new SchemaMetaData(params.getHost(), params.getDbname(), params.getUser(), params.getPassword());
     }

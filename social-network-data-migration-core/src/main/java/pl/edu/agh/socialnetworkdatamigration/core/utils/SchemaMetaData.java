@@ -20,7 +20,7 @@ public class SchemaMetaData implements AutoCloseable {
             this.connection = DriverManager.getConnection("jdbc:postgresql://" + postgresHost + "/" +
                     postgresDB, postgresUser, postgresPassword);
         } catch (SQLException e) {
-            throw new RuntimeException("Couldn't establish connection with database");
+            throw new RuntimeException("Couldn't establish connection with database. Nested exception: ", e);
         }
     }
 
