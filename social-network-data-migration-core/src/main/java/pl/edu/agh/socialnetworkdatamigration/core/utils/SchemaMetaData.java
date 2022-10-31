@@ -24,19 +24,14 @@ public class SchemaMetaData implements AutoCloseable {
         }
     }
 
-    public SchemaMetaData(String configPath) throws IOException {
+    public static SchemaMetaData createFromConfig(String configPath) throws IOException {
         Properties properties = new Properties();
         properties.load(new FileInputStream(configPath));
         String postgresHost = properties.getProperty("postgresHost");
         String postgresDB = properties.getProperty("postgresDB");
         String postgresUser = properties.getProperty("postgresUser");
         String postgresPassword = properties.getProperty("postgresPassword");
-        try {
-            this.connection = DriverManager.getConnection("jdbc:postgresql://" + postgresHost + "/" +
-                    postgresDB, postgresUser, postgresPassword);
-        } catch (SQLException e) {
-            throw new RuntimeException("Couldn't establish connection with database:" + e.getMessage());
-        }
+        return new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
     }
 
     /**
