@@ -23,7 +23,7 @@ public class InteractiveSQLMappingCreator {
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
     public InteractiveSQLMappingCreator(String configPath) {
-        try (SchemaMetaData schemaMetaData = new SchemaMetaData(configPath)) {
+        try (var schemaMetaData = SchemaMetaData.createFromConfig(configPath)) {
             this.databaseInfo = schemaMetaData.getDatabaseInfo();
         } catch (Exception e) {
             e.printStackTrace();
