@@ -3,32 +3,22 @@ package pl.edu.agh.socialnetworkdatamigration.core.mapping.loader;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.json.SQLEdgeMappingDeserializer;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.lang.reflect.Type;
 
 public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
 
-    public SQLSchemaMapping load(String filename) {
+    public SQLSchemaMapping loadFromJson(String json) {
         Type t = new TypeToken<SQLEdgeMapping>(){}.getType();
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(t, new SQLEdgeMappingDeserializer())
                 .create();
-
-        JsonReader reader;
-        try {
-            reader = new JsonReader(new FileReader(filename));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        SQLSchemaMapping schemaMapping = gson.fromJson(reader, SQLSchemaMapping.class);
+        SQLSchemaMapping schemaMapping = gson.fromJson(json, SQLSchemaMapping.class);
         setNodeLabelsInEdgeMappings(schemaMapping);
         validate(schemaMapping);
         return schemaMapping;
