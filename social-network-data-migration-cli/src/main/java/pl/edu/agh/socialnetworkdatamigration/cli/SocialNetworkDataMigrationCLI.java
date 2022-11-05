@@ -41,7 +41,7 @@ public class SocialNetworkDataMigrationCLI {
         String jsonStr = Files.readString(Path.of(mappingsPath));
         var schemaMapping = mappingLoader.loadFromJson(jsonStr);
 
-        try (var migrator = PostgresMigrator.createFromProperties(properties)) {
+        try (var migrator = PostgresMigrator.createFrom(properties)) {
             migrator.migrateData(schemaMapping);
         }
     }
@@ -63,7 +63,7 @@ public class SocialNetworkDataMigrationCLI {
         String jsonStr = Files.readString(Path.of(mappingsPath));
         var schemaMapping = mappingLoader.loadFromJson(jsonStr);
 
-        try (var migrator = new CSVMigrator(configPath, csvDataPath, withHeaders)) {
+        try (var migrator = CSVMigrator.createFrom(configPath, csvDataPath)) {
             migrator.migrateData(schemaMapping);
         }
     }
@@ -75,10 +75,20 @@ public class SocialNetworkDataMigrationCLI {
     }
 
     private static void interactiveCSV(String[] args) throws Exception {
-        boolean withHeaders = args.length == 6 && args[4].equals("--no-headers");
-        InteractiveCSVMappingCreator mappingLoader = new InteractiveCSVMappingCreator(args[3], withHeaders);
+        boolean withHeaders = args.length == 5;
+        boolean noHeaders = args.length == 6 && args[5].equals("--no-headers");
+
+        if (!withHeaders && !noHeaders) {
+            printUsage();
+            return;
+        }
+
+        String configPath = args[2];
+        String csvInputPath = args[3];
+
+        InteractiveCSVMappingCreator mappingLoader = new InteractiveCSVMappingCreator(csvInputPath, withHeaders);
         CSVSchemaMapping mapping = mappingLoader.createInteractively();
-        try (var migrator = new CSVMigrator(args[2], args[3], withHeaders)) {
+        try (var migrator = CSVMigrator.createFrom(configPath, csvInputPath)) {
             migrator.migrateData(mapping);
         }
     }
