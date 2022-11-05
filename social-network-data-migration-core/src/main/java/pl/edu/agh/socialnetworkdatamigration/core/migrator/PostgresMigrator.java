@@ -1,58 +1,53 @@
 package pl.edu.agh.socialnetworkdatamigration.core.migrator;
 
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.EdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.NodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ColumnInfo;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ForeignKeyInfo;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
-    private final Connection connection;
+    private final SchemaMetaData schemaMetaData;
     private final Driver neo4jDriver;
     private final String postgresHost;
     private final String postgresDB;
     private final String postgresUser;
     private final String postgresPassword;
-    private final SchemaMetaData schemaMetaData;
-    private boolean dryRun;
 
-    public PostgresMigrator(String configPath) throws IOException, SQLException {
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(configPath));
-        this.postgresHost = properties.getProperty("postgresHost");
-        this.postgresDB = properties.getProperty("postgresDB");
-        this.postgresUser = properties.getProperty("postgresUser");
-        this.postgresPassword = properties.getProperty("postgresPassword");
-        String neo4jHost = properties.getProperty("neo4jHost");
-        String neo4jUser = properties.getProperty("neo4jUser");
-        String neo4jPassword = properties.getProperty("neo4jPassword");
-
-        this.connection = DriverManager.getConnection("jdbc:postgresql://" + postgresHost + "/" +
-                postgresDB, postgresUser, postgresPassword);
+    public PostgresMigrator(String neo4jHost, String neo4jUser, String neo4jPassword, String postgresHost,
+                            String postgresDB, String postgresUser, String postgresPassword) {
         this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+        this.postgresHost = postgresHost;
+        this.postgresDB = postgresDB;
+        this.postgresUser = postgresUser;
+        this.postgresPassword = postgresPassword;
         this.schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
     }
 
-    public PostgresMigrator(String configPath, boolean dryRun) throws SQLException, IOException {
-        this(configPath);
-        this.dryRun = dryRun;
+    public static PostgresMigrator createFromProperties(Properties properties) throws IOException, SQLException {
+        return new PostgresMigrator(
+                properties.getProperty("neo4jHost"),
+                properties.getProperty("neo4jUser"),
+                properties.getProperty("neo4jPassword"),
+                properties.getProperty("postgresHost"),
+                properties.getProperty("postgresDB"),
+                properties.getProperty("postgresUser"),
+                properties.getProperty("postgresPassword")
+        );
     }
 
     public void migrateData(SQLSchemaMapping schemaMapping) {
@@ -67,11 +62,11 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
         String tableName = sqlNodeMapping.getSqlTableName();
 
         String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                        postgresHost,
-                        postgresDB,
-                        postgresUser,
-                        postgresPassword,
-                        tableName);
+                postgresHost,
+                postgresDB,
+                postgresUser,
+                postgresPassword,
+                tableName);
 
         StringBuilder mappedColumns = new StringBuilder();
         mappedColumns.append(String.format("__table_name:'%s',", tableName));
@@ -250,9 +245,6 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
     private void execute(String query) {
         System.out.println(query);
 
-        if (this.dryRun)
-            return;
-
         long start = System.currentTimeMillis();
         try (Session session = neo4jDriver.session()){
             session.writeTransaction(tx -> {
@@ -286,7 +278,6 @@ public class PostgresMigrator implements Migrator<SQLSchemaMapping> {
 
     @Override
     public void close() throws Exception {
-        this.connection.close();
         this.neo4jDriver.close();
         this.schemaMetaData.close();
     }
