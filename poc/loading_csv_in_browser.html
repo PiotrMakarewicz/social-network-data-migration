@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="file" id="csv-file-selector" accept=".csv">
+    <div id="content"></div>
+    <script>
+        let csvFileSelector = document.getElementById("csv-file-selector")
+        let content = document.getElementById("content")
+        csvFileSelector.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                content.innerText = reader.result;
+            })
+            reader.readAsText(file);
+        })
+    </script>
+</body>
+</html>

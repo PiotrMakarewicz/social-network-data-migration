@@ -4,9 +4,11 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 import org.junit.jupiter.api.Test;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.SQLMappingLoader;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,11 +16,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SQLMappingLoaderTest {
     String sqlMappingsPath = getClass().getClassLoader().getResource("sql_mapping.json").getPath();
+    String sqlMappingsJson = Files.readString(Path.of(sqlMappingsPath));
+
+    public SQLMappingLoaderTest() throws IOException {
+    }
 
     @Test
     void test() throws FileNotFoundException {
         var loader = new SQLMappingLoader();
-        SQLSchemaMapping mapping = loader.load(sqlMappingsPath);
+        SQLSchemaMapping mapping = loader.loadFromJson(sqlMappingsJson);
 
         var nodeMappings = mapping.getNodeMappings();
         var edgeMappings = mapping.getEdgeMappings();

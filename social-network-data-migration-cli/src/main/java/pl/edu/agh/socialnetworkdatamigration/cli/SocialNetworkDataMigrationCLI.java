@@ -10,6 +10,8 @@ import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.PostgresMigrator;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class SocialNetworkDataMigrationCLI {
     public static void main(String[] args) throws Exception {
@@ -27,25 +29,38 @@ public class SocialNetworkDataMigrationCLI {
     }
 
     private static void SQLmigration(String[] args) throws Exception {
-        try (PostgresMigrator migrator = new PostgresMigrator(args[0])) {
-            SQLMappingLoader mappingLoader = new SQLMappingLoader();
-            long start = System.currentTimeMillis();
-            migrator.migrateData(mappingLoader.load(args[1]));
-            long end = System.currentTimeMillis();
-            System.out.printf("Time taken: %s ms", end - start);
+        String configPath = args[0];
+        String mappingsPath = args[1];
+
+        var mappingLoader = new SQLMappingLoader();
+        String jsonStr = Files.readString(Path.of(mappingsPath));
+        var schemaMapping = mappingLoader.loadFromJson(jsonStr);
+
+        try (var migrator = new PostgresMigrator(configPath)) {
+            migrator.migrateData(schemaMapping);
         }
     }
 
     private static void CSVmigration(String[] args) throws Exception {
-        if ((args.length == 4 || args.length == 5 && args[4].equals("--no-headers"))) {
-            boolean withHeaders = args.length == 4;
-            try (var migrator = new CSVMigrator(args[1], args[2], withHeaders)) {
-                CSVMappingLoader mappingLoader = new CSVMappingLoader(args[2], withHeaders);
-                migrator.migrateData(mappingLoader.load(args[3]));
-            }
-        }
-        else
+        boolean withHeaders = args.length == 4;
+        boolean noHeaders = args.length == 5 && args[4].equals("--no-headers");
+
+        if (!withHeaders && !noHeaders) {
             printUsage();
+            return;
+        }
+
+        String configPath = args[1];
+        String csvDataPath = args[2];
+        String mappingsPath = args[3];
+
+        var mappingLoader = new CSVMappingLoader(csvDataPath, withHeaders);
+        String jsonStr = Files.readString(Path.of(mappingsPath));
+        var schemaMapping = mappingLoader.loadFromJson(jsonStr);
+
+        try (var migrator = new CSVMigrator(configPath, csvDataPath, withHeaders)) {
+            migrator.migrateData(schemaMapping);
+        }
     }
 
     private static void interactiveSQL(String[] args) throws IOException {
