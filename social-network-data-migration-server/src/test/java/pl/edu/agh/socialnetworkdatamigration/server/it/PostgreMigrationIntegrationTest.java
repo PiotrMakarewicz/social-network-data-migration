@@ -14,10 +14,15 @@ import org.testcontainers.containers.Neo4jLabsPlugin;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.Neo4jConnectionParams;
 import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.PostgreConnectionParams;
 import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.PostgreMigrationRequestPayload;
 import pl.edu.agh.socialnetworkdatamigration.server.domain.MigrationStatus;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -45,11 +50,32 @@ public class PostgreMigrationIntegrationTest {
     public void postgreMigrationRunsSuccessfully() throws Exception {
         var postgresHostAndPort = getMappedHostAndPort(postgresqlContainer, POSTGRES_PORT);
         var neo4jHostAndPort = getMappedHostAndPort(neo4jContainer, NEO4J_DBMS_PORT);
+        var sqlSchemaMapping = new SQLSchemaMapping();
+        sqlSchemaMapping.addNodeMapping(
+                new SQLNodeMapping(
+                        "User", "users",
+                        Map.of("id", "user_id",
+                                "firstname", "name"))
+        );
+        sqlSchemaMapping.addNodeMapping(
+                new SQLNodeMapping(
+                        "Post", "posts",
+                        Map.of("id", "post_id",
+                                "content", "text"))
+        );
+        sqlSchemaMapping.addEdgeMapping(
+                new ForeignKeyMapping("IsAuthorOf", "User", "Post", "users", "posts", "posts"));
+        sqlSchemaMapping.addEdgeMapping(
+                new JoinTableMapping(
+                        "Likes", "User", "Post", "users", "posts", "user_likes_post",
+                        Map.of("id", "post_id",
+                                "content", "text"))
+        );
 
         var requestPayload = new PostgreMigrationRequestPayload(
                 new PostgreConnectionParams(postgresHostAndPort, POSTGRES_DBNAME, POSTGRES_USER, POSTGRES_PASSWORD),
                 new Neo4jConnectionParams(neo4jHostAndPort, NEO4J_USER, NEO4J_PASSWORD),
-                asJsonString(new SQLSchemaMapping())
+                asJsonString(sqlSchemaMapping)
         );
 
         MvcResult createMigrationRequestResult = mvc.perform(MockMvcRequestBuilders
