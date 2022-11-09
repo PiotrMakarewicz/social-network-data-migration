@@ -1,13 +1,15 @@
 package pl.edu.agh.socialnetworkdatamigration.core.mapping.loader;
 
+import org.junit.jupiter.api.Test;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.CSVEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.CSVNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CSVMigratorTest {
     @Test
@@ -17,10 +19,10 @@ public class CSVMigratorTest {
         //when
         CSVNodeMapping fromNodeMapping = new CSVNodeMapping(
                 "FromNodeLabel",
-                Map.of(0, "from_node_attr"));
+                Map.of(0, "from_node_attr"), List.of("from_node_attr"));
         CSVNodeMapping toNodeMapping = new CSVNodeMapping(
                 "ToNodeLabel",
-                Map.of(1, "to_node_attr"));
+                Map.of(1, "to_node_attr"), List.of("to_node_attr"));
         CSVEdgeMapping edgeMapping = new CSVEdgeMapping(
                 "EdgeLabel",
                 Map.of(2, "edge_attr_one"),

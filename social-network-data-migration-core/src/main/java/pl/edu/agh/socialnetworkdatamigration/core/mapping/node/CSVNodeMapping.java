@@ -1,13 +1,14 @@
 package pl.edu.agh.socialnetworkdatamigration.core.mapping.node;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class CSVNodeMapping extends NodeMapping {
     private final Map<Integer, String> mappedColumns;
 
-    public CSVNodeMapping(String nodeLabel, Map<Integer, String> mappedColumns) {
-        super(nodeLabel);
+    public CSVNodeMapping(String nodeLabel, Map<Integer, String> mappedColumns, List<String> identifyingFields) {
+        super(nodeLabel, identifyingFields);
         this.mappedColumns = mappedColumns;
     }
 

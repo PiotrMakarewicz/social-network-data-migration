@@ -34,6 +34,14 @@ public class CSVMappingLoader implements MappingLoader<CSVSchemaMapping> {
                 nm -> {
                     if (nm.getNodeLabel() == null || nm.getMappedColumns().isEmpty())
                         throw new RuntimeException("Invalid schema mapping JSON file");
+
+                    nm.getIdentifyingFields()
+                            .stream()
+                            .filter(field -> !nm.getMappedColumns().containsValue(field))
+                            .findAny()
+                            .ifPresent((s) -> {
+                                throw new RuntimeException(String.format("Field %s not present in mappedColumns", s));
+                            });
                 }
         );
 

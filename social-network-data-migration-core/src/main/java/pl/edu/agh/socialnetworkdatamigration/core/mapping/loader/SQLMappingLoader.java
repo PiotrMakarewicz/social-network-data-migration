@@ -29,6 +29,14 @@ public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
                 nm -> {
                     if (nm.getSqlTableName() == null || nm.getMappedColumns().isEmpty() || nm.getNodeLabel() == null)
                         throw new RuntimeException("Invalid schema mapping JSON file");
+
+                    nm.getIdentifyingFields()
+                            .stream()
+                            .filter(field -> !nm.getMappedColumns().containsValue(field))
+                            .findAny()
+                            .ifPresent((s) -> {
+                                throw new RuntimeException(String.format("Field %s not present in mappedColumns", s));
+                            });
                 });
 
         schemaMapping.getEdgeMappings().forEach(

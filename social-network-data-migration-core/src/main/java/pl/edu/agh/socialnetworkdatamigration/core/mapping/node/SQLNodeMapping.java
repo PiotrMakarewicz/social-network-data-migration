@@ -2,15 +2,18 @@ package pl.edu.agh.socialnetworkdatamigration.core.mapping.node;
 
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class SQLNodeMapping extends NodeMapping {
-    @Getter private final String sqlTableName;
-    @Getter private final Map<String, String> mappedColumns;
+    @Getter
+    private final String sqlTableName;
+    @Getter
+    private final Map<String, String> mappedColumns;
 
-    public SQLNodeMapping(String nodeLabel, String sqlTableName, Map<String, String> mappedColumns) {
-        super(nodeLabel);
+    public SQLNodeMapping(String nodeLabel, String sqlTableName, Map<String, String> mappedColumns, List<String> identifyingFields) {
+        super(nodeLabel, identifyingFields);
         this.sqlTableName = sqlTableName;
         this.mappedColumns = mappedColumns;
     }
