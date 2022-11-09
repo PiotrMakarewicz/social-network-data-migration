@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class SchemaMetaData implements AutoCloseable {
@@ -19,7 +20,7 @@ public class SchemaMetaData implements AutoCloseable {
     private final String postgresUser;
     private final String postgresPassword;
 
-    public static SchemaMetaData createFromConfig(String configPath) throws IOException {
+    public static SchemaMetaData createFromConfig(String configPath) throws IOException, SQLException {
         Properties properties = new Properties();
         properties.load(new FileInputStream(configPath));
         String postgresHost = properties.getProperty("postgresHost");

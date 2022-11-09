@@ -88,7 +88,6 @@ public class SocialNetworkDataMigrationCLI {
 
         try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
              var migrator = new CSVMigrator(neo4jDriver, csvDataPath, withHeaders)) {
-            CSVMappingLoader mappingLoader = new CSVMappingLoader(args[2], withHeaders);
             migrator.migrateData(schemaMapping);
         }
     }
