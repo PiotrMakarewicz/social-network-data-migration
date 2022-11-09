@@ -7,7 +7,10 @@
         "id": "id",
         "bloglink": "blog_url",
         "name": "name"
-      }
+      },
+      "identifyingFields": [
+        "id"
+      ]
     },
     {
       "sqlTableName": "posts",
@@ -19,7 +22,10 @@
         "date": "timestamp",
         "link": "url",
         "title": "title"
-      }
+      },
+      "identifyingFields": [
+        "id"
+      ]
     },
     {
       "sqlTableName": "comments",
@@ -30,7 +36,10 @@
         "date": "timestamp",
         "salon_id": "salon_id",
         "title": "title"
-      }
+      },
+      "identifyingFields": [
+        "id"
+      ]
     },
     {
       "sqlTableName": "tags",
@@ -38,7 +47,10 @@
       "mappedColumns": {
         "name": "tag_name",
         "id": "id"
-      }
+      },
+      "identifyingFields": [
+        "id"
+      ]
     }
   ],
   "edges": [
