@@ -8,15 +8,15 @@
       "id"
     ]
   },
-
   "toNode": {
     "nodeLabel": "User2",
     "mappedColumns": {
       "1": "id"
     },
-    "identifyingFields": []
+    "identifyingFields": [
+      "incorrectField"
+    ]
   },
-
   "edge": {
     "edgeLabel": "PostedAtWallOf",
     "mappedColumns": {

@@ -9,7 +9,7 @@
         "name": "name"
       },
       "identifyingFields": [
-        "id"
+        "incorrectField"
       ]
     },
     {
@@ -20,9 +20,7 @@
         "content": "content",
         "date": "timestamp"
       },
-      "identifyingFields": [
-        "id"
-      ]
+      "identifyingFields": []
     },
     {
       "sqlTableName": "posts",
@@ -32,9 +30,7 @@
         "content": "content",
         "date": "timestamp"
       },
-      "identifyingFields": [
-        "id"
-      ]
+      "identifyingFields": []
     },
     {
       "sqlTableName": "tags",
@@ -43,9 +39,7 @@
         "id": "id",
         "name": "name"
       },
-      "identifyingFields": [
-        "id"
-      ]
+      "identifyingFields": []
     }
   ],
   "edges": [
