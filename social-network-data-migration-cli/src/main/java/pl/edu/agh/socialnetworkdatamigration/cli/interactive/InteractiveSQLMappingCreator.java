@@ -8,7 +8,9 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.DatabaseInfo;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.TableInfo;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class InteractiveSQLMappingCreator {
@@ -124,7 +126,8 @@ public class InteractiveSQLMappingCreator {
         } while (true);
         System.out.println(databaseInfo.tableToString(table));
         Map<String, String> columnMappings = createColumnMappings(table);
-        SQLNodeMapping nodeMapping = new SQLNodeMapping(node, table, columnMappings);
+        List<String> identifyingFields = chooseIdentifyingFields(columnMappings);
+        SQLNodeMapping nodeMapping = new SQLNodeMapping(node, table, columnMappings, identifyingFields);
         if (questionYesNo("Save mapping?") && !nodeMappings.containsValue(nodeMapping)) {
             String name = node + nodeCounter++;
             nodeMappings.put(name, nodeMapping);
@@ -354,6 +357,27 @@ public class InteractiveSQLMappingCreator {
             } while (!stopMappingCreation);
         }
         return columnMappings;
+    }
+
+    private List<String> chooseIdentifyingFields(Map<String, String> mappedColumns) throws IOException {
+        List<String> identifyingFields = new ArrayList<>();
+        do {
+            System.out.print("Field name: ");
+            String field = in.readLine();
+            if (field.isBlank()) {
+                if (questionYesNo("Stop adding identifying fields?")) {
+                    break;
+                } else {
+                    continue;
+                }
+            }
+            if (!mappedColumns.containsValue(field)) {
+                System.out.println("No such field.");
+            } else {
+                identifyingFields.add(field);
+            }
+        } while (true);
+        return identifyingFields;
     }
 
     private boolean questionYesNo(String prompt) throws IOException {
