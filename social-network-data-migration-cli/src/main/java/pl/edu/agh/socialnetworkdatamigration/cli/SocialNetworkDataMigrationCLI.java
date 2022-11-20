@@ -9,9 +9,11 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.SQLMappingLoade
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.PostgresMigrator;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Properties;
 
 public class SocialNetworkDataMigrationCLI {
     public static void main(String[] args) throws Exception {
@@ -29,14 +31,17 @@ public class SocialNetworkDataMigrationCLI {
     }
 
     private static void SQLmigration(String[] args) throws Exception {
-        String configPath = args[0];
+        String propertiesFilePath = args[0];
         String mappingsPath = args[1];
+
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(propertiesFilePath));
 
         var mappingLoader = new SQLMappingLoader();
         String jsonStr = Files.readString(Path.of(mappingsPath));
         var schemaMapping = mappingLoader.loadFromJson(jsonStr);
 
-        try (var migrator = new PostgresMigrator(configPath)) {
+        try (var migrator = PostgresMigrator.createFrom(properties)) {
             migrator.migrateData(schemaMapping);
         }
     }
@@ -58,7 +63,7 @@ public class SocialNetworkDataMigrationCLI {
         String jsonStr = Files.readString(Path.of(mappingsPath));
         var schemaMapping = mappingLoader.loadFromJson(jsonStr);
 
-        try (var migrator = new CSVMigrator(configPath, csvDataPath, withHeaders)) {
+        try (var migrator = CSVMigrator.createFrom(configPath, csvDataPath)) {
             migrator.migrateData(schemaMapping);
         }
     }
@@ -70,10 +75,20 @@ public class SocialNetworkDataMigrationCLI {
     }
 
     private static void interactiveCSV(String[] args) throws Exception {
-        boolean withHeaders = args.length == 6 && args[4].equals("--no-headers");
-        InteractiveCSVMappingCreator mappingLoader = new InteractiveCSVMappingCreator(args[3], withHeaders);
+        boolean withHeaders = args.length == 5;
+        boolean noHeaders = args.length == 6 && args[5].equals("--no-headers");
+
+        if (!withHeaders && !noHeaders) {
+            printUsage();
+            return;
+        }
+
+        String configPath = args[2];
+        String csvInputPath = args[3];
+
+        InteractiveCSVMappingCreator mappingLoader = new InteractiveCSVMappingCreator(csvInputPath, withHeaders);
         CSVSchemaMapping mapping = mappingLoader.createInteractively();
-        try (var migrator = new CSVMigrator(args[2], args[3], withHeaders)) {
+        try (var migrator = CSVMigrator.createFrom(configPath, csvInputPath)) {
             migrator.migrateData(mapping);
         }
     }

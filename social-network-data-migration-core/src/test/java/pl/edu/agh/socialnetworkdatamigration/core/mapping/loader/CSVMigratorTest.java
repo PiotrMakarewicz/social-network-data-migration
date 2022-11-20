@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CSVMigratorTest {
     @Test
     void buildLoadCsvWithHeadersQuery() throws IOException {
-        CSVMigrator migrator = new CSVMigrator(null, "/data.csv", false);
+        CSVMigrator migrator = new CSVMigrator("/data.csv", "foo", "foo", "foo");
 
         //when
         CSVNodeMapping fromNodeMapping = new CSVNodeMapping(
@@ -26,6 +26,7 @@ public class CSVMigratorTest {
                 Map.of(2, "edge_attr_one"),
                 fromNodeMapping,
                 toNodeMapping);
+
         //then
         String actual = migrator.buildLoadCsvQuery(edgeMapping, fromNodeMapping, toNodeMapping);
 

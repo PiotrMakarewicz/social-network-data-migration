@@ -1,38 +1,37 @@
 package pl.edu.agh.socialnetworkdatamigration.core.migrator;
 
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.GraphDatabase;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.CSVEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.CSVNodeMapping;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Session;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 // Użycie CSVMigratora wymaga wykomentowania linijki dbms.directories.import w neo4j.conf
-public class CSVMigrator implements Migrator<CSVSchemaMapping> {
-    private final String configPath;
+public class CSVMigrator extends Migrator<CSVSchemaMapping> {
     private final String dataPath;
-    private Driver neo4jDriver;
-
     private final String fieldTerminator = "\\t";
 
-    public CSVMigrator(String configPath, String dataPath, boolean withHeaders) throws IOException {
-        this.configPath = configPath;
+    public CSVMigrator(String dataPath, String neo4jHost, String neo4jUser, String neo4jPassword) throws IOException {
+        super(new Neo4jQueryExecutor(GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword))));
         this.dataPath = constructNeo4jDataPath(dataPath);
-        if (configPath != null) {
-            Properties properties = new Properties();
-            properties.load(new FileInputStream(configPath));
-            String neo4jHost = properties.getProperty("neo4jHost");
-            String neo4jUser = properties.getProperty("neo4jUser");
-            String neo4jPassword = properties.getProperty("neo4jPassword");
-            this.neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-        }
+    }
+
+    public static CSVMigrator createFrom(String configPath, String dataPath) throws IOException {
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(configPath));
+        return new CSVMigrator(
+                dataPath,
+                properties.getProperty("neo4jHost"),
+                properties.getProperty("neo4jUser"),
+                properties.getProperty("neo4jPassword")
+        );
     }
 
     public void migrateData(CSVSchemaMapping csvSchemaMapping)  {
@@ -40,13 +39,17 @@ public class CSVMigrator implements Migrator<CSVSchemaMapping> {
         var fromNodeMapping = csvSchemaMapping.getFromNodeMapping();
         var toNodeMapping = csvSchemaMapping.getToNodeMapping();
 
-        createIndex(fromNodeMapping);
-        createIndex(toNodeMapping);
+        var createIndexQueries = List.of(
+                buildCreateIndexQuery(fromNodeMapping),
+                buildCreateIndexQuery(toNodeMapping)
+        );
+        this.executor.executeInOneTransaction(createIndexQueries);
 
-        this.execute(buildLoadCsvQuery(csvEdgeMapping, fromNodeMapping, toNodeMapping));
+        String loadCsvQuery = buildLoadCsvQuery(csvEdgeMapping, fromNodeMapping, toNodeMapping);
+        this.executor.execute(loadCsvQuery);
     }
 
-    private void createIndex(CSVNodeMapping nodeMapping) {
+    private String buildCreateIndexQuery(CSVNodeMapping nodeMapping) {
         ArrayList<String> properties = new ArrayList<>();
 
         for (var property: nodeMapping.getMappedColumns().values()){
@@ -55,13 +58,11 @@ public class CSVMigrator implements Migrator<CSVSchemaMapping> {
 
         String propertiesStr = String.join(", ", properties);
 
-        String query = String.format(
+        return String.format(
                 "CREATE INDEX IF NOT EXISTS\n" +
                 "FOR (p:%s)\n" +
                 "ON (%s)\n",
                 nodeMapping.getNodeLabel(), propertiesStr);
-
-        this.execute(query);
     }
 
     public String buildLoadCsvQuery(CSVEdgeMapping csvEdgeMapping, CSVNodeMapping fromNodeMapping,
@@ -96,25 +97,6 @@ public class CSVMigrator implements Migrator<CSVSchemaMapping> {
             chunks.add(chunk);
         }
         return String.join(", ", chunks);
-    }
-
-    @Override
-    public void close() {
-        this.neo4jDriver.close();
-    }
-
-    private void execute(String query) {
-        System.out.println(query);
-
-        long start = System.currentTimeMillis();
-        try (Session session = neo4jDriver.session()){
-            session.writeTransaction(tx -> {
-                tx.run(query);
-                return null;
-            });
-        }
-        long end = System.currentTimeMillis();
-        System.out.printf("Query execution time: %s ms%n%n", (end - start));
     }
 
     public String constructNeo4jDataPath(String dataPath){
