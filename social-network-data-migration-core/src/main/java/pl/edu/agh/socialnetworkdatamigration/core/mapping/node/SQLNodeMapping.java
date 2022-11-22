@@ -34,7 +34,7 @@ public class SQLNodeMapping extends NodeMapping {
 
     @Override
     public String toString() {
-        String header =  super.toString() +
+        String header = super.toString() +
                 String.format("Table name:        %s\n", sqlTableName) +
                 "Mapped columns:\n";
         StringBuilder builder = new StringBuilder(header);
@@ -42,5 +42,14 @@ public class SQLNodeMapping extends NodeMapping {
             builder.append(String.format("\t%s -> %s\n", mapping.getKey(), mapping.getValue()));
         }
         return builder.toString();
+    }
+
+    public String getColumnForField(String field) {
+        return mappedColumns.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().equals(field))
+                .findFirst()
+                .get()
+                .getKey();
     }
 }
