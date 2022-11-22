@@ -1,22 +1,23 @@
 package pl.edu.agh.socialnetworkdatamigration.core.migrator;
 
 import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.EdgeMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.NodeMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
-import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ColumnInfo;
-import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ForeignKeyInfo;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final SchemaMetaData schemaMetaData;
     private boolean dryRun;
 
@@ -31,237 +32,44 @@ public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
     }
 
     public void migrateData(SQLSchemaMapping schemaMapping) {
-        schemaMapping.getNodeMappings().forEach(this::createNode);
-        schemaMapping.getEdgeMappings().forEach(this::createEdge);
+        MigrationStrategy<SQLSchemaMapping> migrationStrategy = new PostgresAddingStrategy(schemaMetaData);
+        List<Set<String>> operations = migrationStrategy.createMigrationQueries(schemaMapping);
+        operations.forEach(this::waitForQueries);
     }
 
-    private void createNode(NodeMapping nodeMapping) {
-        SQLNodeMapping sqlNodeMapping = (SQLNodeMapping) nodeMapping;
-        this.createIndex(sqlNodeMapping);
-
-        String tableName = sqlNodeMapping.getSqlTableName();
-
-        String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                schemaMetaData.getPostgresHost(),
-                schemaMetaData.getPostgresDB(),
-                schemaMetaData.getPostgresUser(),
-                schemaMetaData.getPostgresPassword(),
-                tableName);
-
-        StringBuilder mappedColumns = new StringBuilder();
-        mappedColumns.append(String.format("__table_name:'%s',", tableName));
-        sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
-            mappedColumns.append(String.format("%s:coalesce(row.%s, 'NULL'),", attribute, column)); // null values
-            // represented as 'NULL'
-        });
-        mappedColumns.setLength(mappedColumns.length() - 1); // delete trailing comma
-
-        StringBuilder primaryKeyColumns = new StringBuilder();
-        schemaMetaData.getPrimaryKeyColumns(tableName).forEach(column -> {
-            primaryKeyColumns.append(String.format("__%s:row.%s,",
-                    column.columnName,
-                    column.columnName
-            ));
-        });
-        primaryKeyColumns.setLength(primaryKeyColumns.length() - 1); // delete trailing comma
-
-        String call = String.format(
-                "CALL apoc.periodic.iterate(\n" +
-                "'%s',\n" +
-                "\"CREATE (n:%s{%s, %s})\",\n" +
-                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches\n",
-                    loadJdbcCall,
-                    sqlNodeMapping.getNodeLabel(),
-                    mappedColumns,
-                    primaryKeyColumns
-                );
-
-        this.execute(call);
-    }
-
-    private void createEdge(EdgeMapping edgeMapping) {
-        if (edgeMapping instanceof ForeignKeyMapping) {
-            createEdgeFromForeignKeyMapping((ForeignKeyMapping) edgeMapping);
-        } else if (edgeMapping instanceof JoinTableMapping) {
-            createEdgeFromJoinTableMapping((JoinTableMapping) edgeMapping);
+    private void waitForQueries(Set<String> queries) {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        queries.forEach(query -> futures.add(execute(query)));
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    private void createEdgeFromForeignKeyMapping(ForeignKeyMapping edgeMapping) {
-        String foreignKeyTable = edgeMapping.getForeignKeyTable();
-        String fromTable = edgeMapping.getFromTable();
-        String toTable = edgeMapping.getToTable();
-
-        List<ForeignKeyInfo> foreignKeys = schemaMetaData.getForeignKeyInfoForTable(
-                foreignKeyTable,
-                foreignKeyTable.equals(toTable) ? fromTable : toTable
-        );
-
-        String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                schemaMetaData.getPostgresHost(),
-                schemaMetaData.getPostgresDB(),
-                schemaMetaData.getPostgresUser(),
-                schemaMetaData.getPostgresPassword(),
-                foreignKeyTable);
-
-        StringBuilder foreignKeyClause = new StringBuilder();
-        for (ForeignKeyInfo foreignKey : foreignKeys){
-            foreignKeyClause.append(String.format(" %s.__%s = row.%s AND",
-                    foreignKey.tableName().equals(fromTable) ? "b" : "a",
-                    foreignKey.referencedColumnName(),
-                    foreignKey.columnName()
-            ));
-        }
-        foreignKeyClause.setLength(foreignKeyClause.length() - 3); // delete trailing AND
-
-        StringBuilder primaryKeyClause = new StringBuilder();
-        List<ColumnInfo> primaryKeyColumns = schemaMetaData.getPrimaryKeyColumns(foreignKeyTable);
-        for (ColumnInfo primaryKeyColumn : primaryKeyColumns) {
-            primaryKeyClause.append(String.format(" %s.__%s = row.%s AND",
-                    foreignKeyTable.equals(fromTable) ? "a" : "b",
-                    primaryKeyColumn.columnName,
-                    primaryKeyColumn.columnName
-            ));
-        }
-        primaryKeyClause.setLength(primaryKeyClause.length() - 3); // delete trailing AND
-
-        String tableNameClause = String.format(" a.__table_name = '%s' AND b.__table_name = '%s'",
-                fromTable,
-                toTable
-        );
-
-        String call = String.format(
-                "CALL apoc.periodic.iterate(\n" +
-                "'%s',\n" +
-                "\"MATCH\n" +
-                "    (a:%s),\n" +
-                "    (b:%s)\n" +
-                "WHERE %s AND %s AND %s\n" +
-                "CREATE (a)-[r:%s]->(b)\",\n" +
-                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
-                    loadJdbcCall,
-                    edgeMapping.getFromNode(),
-                    edgeMapping.getToNode(),
-                    foreignKeyClause,
-                    primaryKeyClause,
-                    tableNameClause,
-                    edgeMapping.getEdgeLabel()
-                );
-
-        this.execute(call);
-    }
-
-    private void createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
-        String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                schemaMetaData.getPostgresHost(),
-                schemaMetaData.getPostgresDB(),
-                schemaMetaData.getPostgresUser(),
-                schemaMetaData.getPostgresPassword(),
-                edgeMapping.getJoinTable());
-
-        List<ForeignKeyInfo> fromTableForeignKeys = schemaMetaData.getForeignKeyInfoForTable(
-                edgeMapping.getJoinTable(),
-                edgeMapping.getFromTable()
-        );
-
-        List<ForeignKeyInfo> toTableForeignKeys = schemaMetaData.getForeignKeyInfoForTable(
-                edgeMapping.getJoinTable(),
-                edgeMapping.getToTable()
-        );
-
-        StringBuilder fromTableForeignKeyClause = new StringBuilder();
-        fromTableForeignKeys.forEach(foreignKey -> {
-            fromTableForeignKeyClause.append(String.format(" a.__%s = row.%s AND",
-                    foreignKey.referencedColumnName(),
-                    foreignKey.columnName()
-            ));
-        });
-        fromTableForeignKeyClause.setLength(fromTableForeignKeyClause.length() - 3);
-
-        StringBuilder toTableForeignKeyClause = new StringBuilder();
-        toTableForeignKeys.forEach(foreignKey -> {
-            toTableForeignKeyClause.append(String.format(" b.__%s = row.%s AND",
-                    foreignKey.referencedColumnName(),
-                    foreignKey.columnName()
-            ));
-        });
-        toTableForeignKeyClause.setLength(toTableForeignKeyClause.length() - 3);
-
-        String tableNameClause = String.format(" a.__table_name = '%s' AND b.__table_name = '%s'",
-                edgeMapping.getFromTable(),
-                edgeMapping.getToTable()
-        );
-
-        StringBuilder mappedColumns = new StringBuilder();
-        edgeMapping.getMappedColumns().forEach((column, attribute) -> {
-            mappedColumns.append(String.format("%s:coalesce(row.%s, 'NULL'),", attribute, column)); // null values
-            // represented as 'NULL'
-        });
-        if (edgeMapping.getMappedColumns().size() != 0)
-            mappedColumns.setLength(mappedColumns.length() - 1); // delete trailing comma
-
-        String call = String.format(
-                "CALL apoc.periodic.iterate(" +
-                "'%s'," +
-                "\"MATCH" +
-                "    (a:%s)," +
-                "    (b:%s)" +
-                "WHERE %s AND %s AND %s" +
-                "CREATE (a)-[r:%s{%s}]->(b)\"," +
-                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
-                loadJdbcCall,
-                edgeMapping.getFromNode(),
-                edgeMapping.getToNode(),
-                fromTableForeignKeyClause,
-                toTableForeignKeyClause,
-                tableNameClause,
-                edgeMapping.getEdgeLabel(),
-                mappedColumns
-        );
-
-        this.execute(call);
-    }
-
-    private void execute(String query) {
+    private CompletableFuture<List<Record>> execute(String query) {
+        CompletableFuture<List<Record>> future = new CompletableFuture<>();
         System.out.println(query);
 
-        if (this.dryRun)
-            return;
-
-        long start = System.currentTimeMillis();
-        try (Session session = neo4jDriver.session()){
-            session.writeTransaction(tx -> {
-                tx.run(query);
-                return null;
-            });
+        if (this.dryRun) {
+            future.complete(null);
+            return future;
         }
-        long end = System.currentTimeMillis();
-        System.out.printf("Time taken: %s s%n", (end - start) / 1000);
-    }
 
-    private void createIndex(SQLNodeMapping nodeMapping) {
-        String nodeLabel = nodeMapping.getNodeLabel();
-        String tableName = nodeMapping.getSqlTableName();
-        List<String> primaryKeyColumns = schemaMetaData
-                .getPrimaryKeyColumns(tableName)
-                .stream()
-                .map(column -> column.columnName)
-                .collect(Collectors.toList());
-
-        String call = String.format("CREATE INDEX %s IF NOT EXISTS FOR (n:%s) ON (",
-                (nodeLabel + "_" + tableName),
-                nodeLabel);
-        StringBuilder callBuilder = new StringBuilder(call);
-        primaryKeyColumns.forEach(column -> {
-            callBuilder.append(String.format("n.__%s,", column));
+        executor.submit(() -> {
+            try (Session session = neo4jDriver.session()) {
+                Result result = session.run(query);
+                future.complete(result.list());
+            }
         });
-        callBuilder.append("n.__table_name)");
-        this.execute(callBuilder.toString());
+
+        return future;
     }
 
     @Override
     public void close() throws SQLException {
         this.neo4jDriver.close();
         this.schemaMetaData.close();
+        executor.shutdown();
     }
 }
