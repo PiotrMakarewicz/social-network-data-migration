@@ -27,7 +27,7 @@ public class MigrationStatusController {
     public String getMigrationStatus(@PathVariable int migrationId){
         Optional<MigrationStatus> status = registry.getMigrationStatus(migrationId);
         if (status.isPresent())
-            return status.toString();
+            return status.get().toString();
         else
             throw new ResponseStatusException(NOT_FOUND, "There is no migration with id " + migrationId);
     }
