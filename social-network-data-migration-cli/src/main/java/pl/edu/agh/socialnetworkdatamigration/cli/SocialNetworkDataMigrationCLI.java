@@ -1,5 +1,6 @@
 package pl.edu.agh.socialnetworkdatamigration.cli;
 
+import org.apache.commons.cli.*;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -9,139 +10,144 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.CSVMappingLoader;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.SQLMappingLoader;
-import pl.edu.agh.socialnetworkdatamigration.core.migrator.CSVMigrator;
-import pl.edu.agh.socialnetworkdatamigration.core.migrator.PostgresMigrator;
+import pl.edu.agh.socialnetworkdatamigration.core.migrator.*;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.Properties;
 
 public class SocialNetworkDataMigrationCLI {
     public static void main(String[] args) throws Exception {
-        if (args.length == 2 && args[0].equals("--i")) {
-            interactiveSQL(args);
-        } else if (args.length == 2) {
-            SQLmigration(args);
-        } else if (args[0].equals("--csv")) {
-            if (args[1].equals("--i")) {
-                interactiveCSV(args);
+        CommandLine cmd = getArgs(args);
+
+        Properties properties = new Properties();
+        properties.load(new FileInputStream(cmd.getOptionValue("config")));
+        String neo4jHost = properties.getProperty("neo4jHost");
+        String neo4jUser = properties.getProperty("neo4jUser");
+        String neo4jPassword = properties.getProperty("neo4jPassword");
+
+        if (cmd.hasOption("csv")) {
+            String dataPath = cmd.getOptionValue("csv");
+            String fieldTerminator = cmd.hasOption("field-terminator") ? cmd.getOptionValue("field-terminator") : "\\t";
+            boolean hasHeaders = !cmd.hasOption("no-headers");
+            CSVSchemaMapping schemaMapping;
+            CsvStrategy migrationStrategy;
+
+            if (cmd.hasOption('i')) {
+                schemaMapping = new InteractiveCSVMappingCreator(dataPath, hasHeaders).createInteractively();
             } else {
-                CSVmigration(args);
+                String mappingsPath = cmd.getOptionValue("mapping");
+                String jsonStr = Files.readString(Path.of(mappingsPath));
+                schemaMapping = new CSVMappingLoader(dataPath, hasHeaders).loadFromJson(jsonStr);
+            }
+
+            if (cmd.hasOption("merge")) {
+                migrationStrategy = new CsvMergingStrategy(dataPath, fieldTerminator, hasHeaders);
+            } else {
+                migrationStrategy = new CsvAddingStrategy(dataPath, fieldTerminator, hasHeaders);
+            }
+            try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+                 Migrator<CSVSchemaMapping> migrator = new Migrator<>(neo4jDriver, migrationStrategy, cmd.hasOption("dry-run"))) {
+                migrator.migrateData(schemaMapping);
             }
         } else {
+            String postgresHost = properties.getProperty("postgresHost");
+            String postgresDB = properties.getProperty("postgresDB");
+            String postgresUser = properties.getProperty("postgresUser");
+            String postgresPassword = properties.getProperty("postgresPassword");
+            SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
+            SQLSchemaMapping schemaMapping;
+            PostgresStrategy migrationStrategy;
+
+            if (cmd.hasOption('i')) {
+                schemaMapping = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo()).createInteractively();
+            } else {
+                String mappingsPath = cmd.getOptionValue("mapping");
+                String jsonStr = Files.readString(Path.of(mappingsPath));
+                schemaMapping = new SQLMappingLoader().loadFromJson(jsonStr);
+            }
+
+            if (cmd.hasOption("merge")) {
+                migrationStrategy = new PostgresMergingStrategy(schemaMetaData);
+            } else {
+                migrationStrategy = new PostgresAddingStrategy(schemaMetaData);
+            }
+
+            try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
+                 Migrator<SQLSchemaMapping> migrator = new Migrator<>(neo4jDriver, migrationStrategy, cmd.hasOption("dry-run"))) {
+                migrator.migrateData(schemaMapping);
+            }
+            schemaMetaData.close();
+        }
+    }
+
+    private static CommandLine getArgs(String[] args) {
+        Option interactive = Option.builder("i")
+                .hasArg(false)
+                .required(false)
+                .longOpt("interactive")
+                .build();
+
+        Option csv = Option.builder()
+                .hasArg(true)
+                .argName("Path to CSV file")
+                .required(false)
+                .longOpt("csv")
+                .build();
+
+        Option config = Option.builder()
+                .hasArg(true)
+                .argName("Path to config file")
+                .required(true)
+                .longOpt("config")
+                .build();
+
+        Option mapping = Option.builder()
+                .hasArg(true)
+                .argName("Path to mapping file")
+                .required(true)
+                .longOpt("mapping")
+                .build();
+
+        Option noHeaders = Option.builder()
+                .hasArg(false)
+                .required(false)
+                .longOpt("no-headers")
+                .build();
+
+        Option merge = Option.builder()
+                .hasArg(false)
+                .required(false)
+                .longOpt("merge")
+                .build();
+
+        Option dryRun = Option.builder()
+                .hasArg(false)
+                .required(false)
+                .longOpt("dry-run")
+                .build();
+
+        Options options = new Options();
+        options.addOption(interactive).addOption(csv).addOption(config).addOption(mapping).
+                addOption(noHeaders).addOption(merge).addOption(dryRun);
+        CommandLineParser parser = new DefaultParser();
+        try {
+            return parser.parse(options, args);
+        } catch (ParseException e) {
+            System.out.println(e.getMessage());
             printUsage();
-        }
-    }
-
-    private static void SQLmigration(String[] args) throws Exception {
-        String configPath = args[0];
-        String mappingsPath = args[1];
-
-        var mappingLoader = new SQLMappingLoader();
-        String jsonStr = Files.readString(Path.of(mappingsPath));
-        var schemaMapping = mappingLoader.loadFromJson(jsonStr);
-
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(configPath));
-        String postgresHost = properties.getProperty("postgresHost");
-        String postgresDB = properties.getProperty("postgresDB");
-        String postgresUser = properties.getProperty("postgresUser");
-        String postgresPassword = properties.getProperty("postgresPassword");
-        String neo4jHost = properties.getProperty("neo4jHost");
-        String neo4jUser = properties.getProperty("neo4jUser");
-        String neo4jPassword = properties.getProperty("neo4jPassword");
-
-        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-             SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
-             PostgresMigrator migrator = new PostgresMigrator(neo4jDriver, schemaMetaData)) {
-            migrator.migrateData(schemaMapping);
-        }
-    }
-
-    private static void CSVmigration(String[] args) throws Exception {
-        boolean withHeaders = args.length == 4;
-        boolean noHeaders = args.length == 5 && args[4].equals("--no-headers");
-
-        if (!withHeaders && !noHeaders) {
-            printUsage();
-            return;
-        }
-
-        String configPath = args[1];
-        String csvDataPath = args[2];
-        String mappingsPath = args[3];
-
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(configPath));
-        String neo4jHost = properties.getProperty("neo4jHost");
-        String neo4jUser = properties.getProperty("neo4jUser");
-        String neo4jPassword = properties.getProperty("neo4jPassword");
-
-        var mappingLoader = new CSVMappingLoader(csvDataPath, withHeaders);
-        String jsonStr = Files.readString(Path.of(mappingsPath));
-        var schemaMapping = mappingLoader.loadFromJson(jsonStr);
-
-
-        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-             var migrator = new CSVMigrator(neo4jDriver, csvDataPath, withHeaders)) {
-            migrator.migrateData(schemaMapping);
-        }
-    }
-
-    private static void interactiveSQL(String[] args) throws IOException {
-        String configPath = args[1];
-
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(configPath));
-        String postgresHost = properties.getProperty("postgresHost");
-        String postgresDB = properties.getProperty("postgresDB");
-        String postgresUser = properties.getProperty("postgresUser");
-        String postgresPassword = properties.getProperty("postgresPassword");
-        String neo4jHost = properties.getProperty("neo4jHost");
-        String neo4jUser = properties.getProperty("neo4jUser");
-        String neo4jPassword = properties.getProperty("neo4jPassword");
-
-        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-             SchemaMetaData schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
-             PostgresMigrator migrator = new PostgresMigrator(neo4jDriver, schemaMetaData)) {
-            var creator = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo());
-            SQLSchemaMapping mapping = creator.createInteractively();
-            long start = System.currentTimeMillis();
-            migrator.migrateData(mapping);
-            long end = System.currentTimeMillis();
-            System.out.printf("Time taken: %s ms", end - start);
-        } catch (SQLException e) {
-            throw new RuntimeException("Couldn't establish connection with Postgres database: " + e);
-        }
-    }
-
-    private static void interactiveCSV(String[] args) throws Exception {
-        String configPath = args[2];
-
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(configPath));
-        String neo4jHost = properties.getProperty("neo4jHost");
-        String neo4jUser = properties.getProperty("neo4jUser");
-        String neo4jPassword = properties.getProperty("neo4jPassword");
-
-        boolean withHeaders = args.length == 6 && args[4].equals("--no-headers");
-        InteractiveCSVMappingCreator mappingLoader = new InteractiveCSVMappingCreator(args[3], withHeaders);
-        CSVSchemaMapping mapping = mappingLoader.createInteractively();
-        try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-             var migrator = new CSVMigrator(neo4jDriver, args[3], withHeaders)) {
-            migrator.migrateData(mapping);
+            System.exit(1);
+            return null;
         }
     }
 
     private static void printUsage() {
         System.out.println(
-                "Usage: java -jar SocialNetworkDataMigrationCLI <config-path> <mapping-path>\n" +
-                "       java -jar SocialNetworkDataMigrationCLI --csv <config-path> <data-path> <mapping-path> [--no-headers]\n" +
-                "       java -jar SocialNetworkDataMigrationCLI --i <config-path>\n" +
-                "       java -jar SocialNetworkDataMigrationCLI --csv --i <config-path> <data-path> [--no-headers]");
+                "Usage:\n" +
+                        "java -jar SocialNetworkDataMigrationCLI --config <config-path> --mapping <mapping-path> [-i] [--dry-run]" +
+                        " [--merge] [--csv <data-path> [--field-terminator <field-terminator>] [--no-headers]]\n"
+        );
     }
 }
