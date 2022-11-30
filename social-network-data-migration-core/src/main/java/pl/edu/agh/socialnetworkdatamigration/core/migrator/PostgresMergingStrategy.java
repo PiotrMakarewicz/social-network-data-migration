@@ -60,11 +60,19 @@ public class PostgresMergingStrategy extends PostgresStrategy {
                 .map(entry -> String.format("n.%s=coalesce(row.%s, 'NULL')", entry.getValue(), entry.getKey()))
                 .collect(Collectors.joining(", "));
 
-        String mergeNode = String.format("MERGE (n:%s{%s}) ON CREATE SET %s ON MATCH SET %s",
+        String onCreateSet;
+        if (mappedNonIdentifyingFields.isEmpty()) {
+            onCreateSet = "";
+        } else {
+            onCreateSet = String.format("ON CREATE SET %s ON MATCH SET %s",
+                    mappedNonIdentifyingFields,
+                    mappedNonIdentifyingFields);
+        }
+
+        String mergeNode = String.format("MERGE (n:%s{%s}) %s",
                 nodeMapping.getNodeLabel(),
                 mappedIdentifyingFields,
-                mappedNonIdentifyingFields,
-                mappedNonIdentifyingFields);
+                onCreateSet);
 
         return String.format(
                 "CALL apoc.periodic.iterate(\n" +
