@@ -5,9 +5,10 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 
+import java.sql.SQLException;
 import java.util.*;
 
-public abstract class PostgresStrategy extends MigrationStrategy<SQLSchemaMapping> {
+public abstract class PostgresStrategy extends MigrationStrategy<SQLSchemaMapping> implements AutoCloseable {
     protected final SchemaMetaData schemaMetaData;
 
     protected PostgresStrategy(SchemaMetaData schemaMetaData) {
@@ -71,5 +72,10 @@ public abstract class PostgresStrategy extends MigrationStrategy<SQLSchemaMappin
                 Set.of(e1.getFromTable(), e1.getToTable()),
                 Set.of(e2.getFromTable(), e2.getToTable())
         );
+    }
+
+    @Override
+    public void close() throws SQLException {
+        schemaMetaData.close();
     }
 }
