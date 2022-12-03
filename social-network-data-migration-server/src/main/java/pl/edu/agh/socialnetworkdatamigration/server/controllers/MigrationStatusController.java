@@ -26,19 +26,17 @@ public class MigrationStatusController {
     @ResponseBody
     public String getMigrationStatus(@PathVariable int migrationId){
         Optional<MigrationStatus> status = registry.getMigrationStatus(migrationId);
-        if (status.isPresent())
-            return status.get().toString();
-        else
-            throw new ResponseStatusException(NOT_FOUND, "There is no migration with id " + migrationId);
+        return status.orElseThrow(
+                () -> new ResponseStatusException(NOT_FOUND, "There is no migration with id " + migrationId)
+        ).toString();
     }
 
     @RequestMapping(value = "migration_failure_reason/{migrationId}", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
     public String getMigrationFailureReason(@PathVariable int migrationId){
-        Optional<Throwable> t = registry.getMigrationFailureReason(migrationId);
-         if (t.isPresent())
-             return t.get().getMessage();
-         else
-             throw new ResponseStatusException(NOT_FOUND, "There is no failed migration with id " + migrationId);
+        Optional<Throwable> reason = registry.getMigrationFailureReason(migrationId);
+         return reason.orElseThrow(
+                 () -> new ResponseStatusException(NOT_FOUND, "There is no failed migration with id " + migrationId)
+         ).getMessage();
     }
 }
