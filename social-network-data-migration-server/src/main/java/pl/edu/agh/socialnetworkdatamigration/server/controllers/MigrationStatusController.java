@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 import pl.edu.agh.socialnetworkdatamigration.server.MigrationRegistry;
+import pl.edu.agh.socialnetworkdatamigration.server.domain.MigrationStatus;
 
 import java.util.Optional;
 
@@ -24,16 +25,18 @@ public class MigrationStatusController {
     @RequestMapping(value = "migration_status/{migrationId}", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
     public String getMigrationStatus(@PathVariable int migrationId){
-        return registry.getMigrationStatus(migrationId).toString();
+        Optional<MigrationStatus> status = registry.getMigrationStatus(migrationId);
+        return status.orElseThrow(
+                () -> new ResponseStatusException(NOT_FOUND, "There is no migration with id " + migrationId)
+        ).toString();
     }
 
     @RequestMapping(value = "migration_failure_reason/{migrationId}", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
     public String getMigrationFailureReason(@PathVariable int migrationId){
-        Optional<Throwable> t = Optional.ofNullable(registry.getMigrationFailureReason(migrationId));
-         if (t.isPresent())
-             return t.get().getMessage();
-         else
-             throw new ResponseStatusException(NOT_FOUND, "There is no failed migration with id " + migrationId);
+        Optional<Throwable> reason = registry.getMigrationFailureReason(migrationId);
+         return reason.orElseThrow(
+                 () -> new ResponseStatusException(NOT_FOUND, "There is no failed migration with id " + migrationId)
+         ).getMessage();
     }
 }

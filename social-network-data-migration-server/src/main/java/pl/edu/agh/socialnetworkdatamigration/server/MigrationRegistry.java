@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import pl.edu.agh.socialnetworkdatamigration.server.domain.MigrationStatus;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -28,11 +29,11 @@ public class MigrationRegistry {
         migrationFailureReasonMap.put(migrationId, reason);
     }
 
-    public MigrationStatus getMigrationStatus(int migrationId){
-        return migrationStatusMap.get(migrationId);
+    public Optional<MigrationStatus> getMigrationStatus(int migrationId){
+        return Optional.ofNullable(migrationStatusMap.get(migrationId));
     }
 
-    public Throwable getMigrationFailureReason(int migrationId){
-        return migrationFailureReasonMap.get(migrationId);
+    public Optional<Throwable> getMigrationFailureReason(int migrationId){
+        return Optional.ofNullable(migrationFailureReasonMap.get(migrationId));
     }
 }
