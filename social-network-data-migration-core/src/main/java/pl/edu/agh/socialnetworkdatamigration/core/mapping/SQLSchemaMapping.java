@@ -8,10 +8,10 @@ import java.util.Optional;
 public class SQLSchemaMapping extends MultiSchemaMapping<SQLNodeMapping, SQLEdgeMapping> {
 
     public Optional<String> getNodeLabelForTableName(String tableName) {
-        return getNodeForTable(tableName).map(SQLNodeMapping::getNodeLabel);
+        return getNodeMappingForTable(tableName).map(SQLNodeMapping::getNodeLabel);
     }
 
-    public Optional<SQLNodeMapping> getNodeForTable(String table) {
+    public Optional<SQLNodeMapping> getNodeMappingForTable(String table) {
         return this.getNodeMappings()
                 .stream()
                 .filter(n -> n.getSqlTableName().equals(table))
