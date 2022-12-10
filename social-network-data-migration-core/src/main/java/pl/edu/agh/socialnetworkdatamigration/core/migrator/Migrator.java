@@ -6,7 +6,6 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SchemaMapping;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,26 +14,17 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Migrator<S extends SchemaMapping> implements AutoCloseable {
+public class Migrator implements AutoCloseable {
     private final ExecutorService executor = Executors.newCachedThreadPool();
-    private final MigrationStrategy<S> migrationStrategy;
-    private final Driver neo4jDriver;
-    private final boolean dryRun;
 
-    public Migrator(Driver neo4jDriver, MigrationStrategy<S> migrationStrategy, boolean dryRun) {
-        this.migrationStrategy = migrationStrategy;
-        this.neo4jDriver = neo4jDriver;
-        this.dryRun = dryRun;
-    }
-
-    public void migrateData(S schemaMapping) {
+    public <S extends SchemaMapping> void migrateData(S schemaMapping, MigrationStrategy<S> migrationStrategy, Driver neo4jDriver, boolean dryRun) {
         List<Set<String>> operations = migrationStrategy.createMigrationQueries(schemaMapping);
-        operations.forEach(this::waitForQueries);
+        operations.forEach(queriesSet -> waitForQueries(queriesSet, neo4jDriver, dryRun));
     }
 
-    private void waitForQueries(Set<String> queries) {
+    private void waitForQueries(Set<String> queries, Driver neo4jDriver, boolean dryRun) {
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        queries.forEach(query -> futures.add(execute(query)));
+        queries.forEach(query -> futures.add(execute(query, neo4jDriver, dryRun)));
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -42,11 +32,11 @@ public class Migrator<S extends SchemaMapping> implements AutoCloseable {
         }
     }
 
-    private CompletableFuture<List<Record>> execute(String query) {
+    private CompletableFuture<List<Record>> execute(String query, Driver neo4jDriver, boolean dryRun) {
         CompletableFuture<List<Record>> future = new CompletableFuture<>();
         System.out.println(query);
 
-        if (this.dryRun) {
+        if (dryRun) {
             future.complete(null);
             return future;
         }
@@ -62,8 +52,7 @@ public class Migrator<S extends SchemaMapping> implements AutoCloseable {
     }
 
     @Override
-    public void close() throws SQLException {
-        neo4jDriver.close();
+    public void close() {
         executor.shutdown();
     }
 }

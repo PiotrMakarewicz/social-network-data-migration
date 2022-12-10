@@ -52,8 +52,8 @@ public class SocialNetworkDataMigrationCLI {
                 migrationStrategy = new CsvAddingStrategy(dataPath, fieldTerminator, hasHeaders);
             }
             try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-                 Migrator<CSVSchemaMapping> migrator = new Migrator<>(neo4jDriver, migrationStrategy, cmd.hasOption("dry-run"))) {
-                migrator.migrateData(schemaMapping);
+                 Migrator migrator = new Migrator()) {
+                migrator.migrateData(schemaMapping, migrationStrategy, neo4jDriver, cmd.hasOption("dry-run"));
             }
         } else {
             String postgresHost = properties.getProperty("postgresHost");
@@ -79,8 +79,8 @@ public class SocialNetworkDataMigrationCLI {
             }
 
             try (Driver neo4jDriver = GraphDatabase.driver("neo4j://" + neo4jHost, AuthTokens.basic(neo4jUser, neo4jPassword));
-                 Migrator<SQLSchemaMapping> migrator = new Migrator<>(neo4jDriver, migrationStrategy, cmd.hasOption("dry-run"))) {
-                migrator.migrateData(schemaMapping);
+                 Migrator migrator = new Migrator()) {
+                migrator.migrateData(schemaMapping, migrationStrategy, neo4jDriver, cmd.hasOption("dry-run"));
             }
             schemaMetaData.close();
         }
