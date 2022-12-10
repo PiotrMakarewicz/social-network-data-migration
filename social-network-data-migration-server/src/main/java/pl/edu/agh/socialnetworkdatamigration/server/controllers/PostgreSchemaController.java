@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
+import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.PostgreConnectionParams;
 
 import java.sql.SQLException;
 
