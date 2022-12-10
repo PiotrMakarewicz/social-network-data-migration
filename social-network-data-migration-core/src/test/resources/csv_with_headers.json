@@ -3,14 +3,18 @@
     "nodeLabel": "Person",
     "mappedColumns": {
       "person_one": "id"
-    }
+    },
+    "identifyingFields": [
+      "id"
+    ]
   },
 
   "toNode": {
     "nodeLabel": "Person2",
     "mappedColumns": {
       "person_two": "id"
-    }
+    },
+    "identifyingFields": []
   },
 
   "edge": {

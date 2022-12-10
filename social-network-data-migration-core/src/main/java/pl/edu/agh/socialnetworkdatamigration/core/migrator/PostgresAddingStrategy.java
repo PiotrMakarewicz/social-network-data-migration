@@ -1,78 +1,57 @@
 package pl.edu.agh.socialnetworkdatamigration.core.migrator;
 
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.SQLSchemaMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.EdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
+import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ColumnInfo;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.ForeignKeyInfo;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
-    private final SchemaMetaData schemaMetaData;
-    private final String postgresHost;
-    private final String postgresDB;
-    private final String postgresUser;
-    private final String postgresPassword;
-
-    public PostgresMigrator(String neo4jHost, String neo4jUser, String neo4jPassword, String postgresHost,
-                            String postgresDB, String postgresUser, String postgresPassword) {
-        super(Neo4jQueryExecutor.createFrom(neo4jHost, neo4jUser, neo4jPassword));
-        this.postgresHost = postgresHost;
-        this.postgresDB = postgresDB;
-        this.postgresUser = postgresUser;
-        this.postgresPassword = postgresPassword;
-        this.schemaMetaData = new SchemaMetaData(postgresHost, postgresDB, postgresUser, postgresPassword);
+public class PostgresAddingStrategy extends PostgresStrategy {
+    public PostgresAddingStrategy(SchemaMetaData schemaMetaData) {
+        super(schemaMetaData);
     }
 
-    public static PostgresMigrator createFrom(Properties properties){
-        return new PostgresMigrator(
-                properties.getProperty("neo4jHost"),
-                properties.getProperty("neo4jUser"),
-                properties.getProperty("neo4jPassword"),
-                properties.getProperty("postgresHost"),
-                properties.getProperty("postgresDB"),
-                properties.getProperty("postgresUser"),
-                properties.getProperty("postgresPassword")
-        );
+    @Override
+    protected String createIndexQuery(SQLNodeMapping nodeMapping) {
+        String nodeLabel = nodeMapping.getNodeLabel();
+        String tableName = nodeMapping.getSqlTableName();
+        List<String> primaryKeyColumns = schemaMetaData
+                .getPrimaryKeyColumns(tableName)
+                .stream()
+                .map(column -> column.columnName)
+                .collect(Collectors.toList());
+
+        String call = String.format("CREATE INDEX %s IF NOT EXISTS FOR (n:%s) ON (",
+                (nodeLabel + "_index"),
+                nodeLabel);
+        StringBuilder callBuilder = new StringBuilder(call);
+        primaryKeyColumns.forEach(column -> {
+            callBuilder.append(String.format("n.__%s,", column));
+        });
+        callBuilder.append("n.__table_name)");
+        return callBuilder.toString();
     }
 
-    public void migrateData(SQLSchemaMapping schemaMapping) {
-        List<String> createIndexQueries =
-                schemaMapping.getNodeMappings().stream().map(this::buildCreateIndexQuery).collect(Collectors.toList());
-
-        executor.executeInOneTransaction(createIndexQueries);
-
-        Stream<String> createNodeQueries =
-                schemaMapping.getNodeMappings().stream().map(this::buildCreateNodesQuery);
-        Stream<String> createEdgeQueries =
-                schemaMapping.getEdgeMappings().stream().map(this::buildCreateEdgesQuery);
-
-        List<String> createNodesAndEdgesQueries =
-                Stream.concat(createNodeQueries, createEdgeQueries).collect(Collectors.toList());
-
-        executor.executeInOneTransaction(createNodesAndEdgesQueries);
-    }
-
-    private String buildCreateNodesQuery(SQLNodeMapping sqlNodeMapping) {
-        String tableName = sqlNodeMapping.getSqlTableName();
+    @Override
+    protected String createNodeQuery(SQLNodeMapping nodeMapping) {
+        String tableName = nodeMapping.getSqlTableName();
 
         String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                postgresHost,
-                postgresDB,
-                postgresUser,
-                postgresPassword,
+                schemaMetaData.getPostgresHost(),
+                schemaMetaData.getPostgresDB(),
+                schemaMetaData.getPostgresUser(),
+                schemaMetaData.getPostgresPassword(),
                 tableName);
 
         StringBuilder mappedColumns = new StringBuilder();
         mappedColumns.append(String.format("__table_name:'%s',", tableName));
-        sqlNodeMapping.getMappedColumns().forEach((column, attribute) -> {
+        nodeMapping.getMappedColumns().forEach((column, attribute) -> {
             mappedColumns.append(String.format("%s:coalesce(row.%s, 'NULL'),", attribute, column)); // null values
             // represented as 'NULL'
         });
@@ -89,25 +68,26 @@ public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
 
         return String.format(
                 "CALL apoc.periodic.iterate(\n" +
-                "'%s',\n" +
-                "\"CREATE (n:%s{%s, %s})\",\n" +
-                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches\n",
-                    loadJdbcCall,
-                    sqlNodeMapping.getNodeLabel(),
-                    mappedColumns,
-                    primaryKeyColumns
-                );
+                        "'%s',\n" +
+                        "\"CREATE (n:%s{%s, %s})\",\n" +
+                        "{batchSize:10000, parallel:true}) YIELD batches RETURN batches\n",
+                loadJdbcCall,
+                nodeMapping.getNodeLabel(),
+                mappedColumns,
+                primaryKeyColumns
+        );
     }
 
-    private String buildCreateEdgesQuery(EdgeMapping edgeMapping) {
+    @Override
+    protected String createEdgeQuery(SQLSchemaMapping schemaMapping, SQLEdgeMapping edgeMapping) {
         if (edgeMapping instanceof ForeignKeyMapping) {
-            return buildCreateEdgesQueryFromFKMapping((ForeignKeyMapping) edgeMapping);
-        } else if (edgeMapping instanceof JoinTableMapping) {
-            return buildCreateEdgesQueryFromJTMapping((JoinTableMapping) edgeMapping);
-        } else throw new IllegalStateException();
+            return createEdgeFromForeignKeyMapping((ForeignKeyMapping) edgeMapping);
+        } else {
+            return createEdgeFromJoinTableMapping((JoinTableMapping) edgeMapping);
+        }
     }
 
-    private String buildCreateEdgesQueryFromFKMapping(ForeignKeyMapping edgeMapping) {
+    private String createEdgeFromForeignKeyMapping(ForeignKeyMapping edgeMapping) {
         String foreignKeyTable = edgeMapping.getForeignKeyTable();
         String fromTable = edgeMapping.getFromTable();
         String toTable = edgeMapping.getToTable();
@@ -118,14 +98,14 @@ public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
         );
 
         String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                        postgresHost,
-                        postgresDB,
-                        postgresUser,
-                        postgresPassword,
-                        foreignKeyTable);
+                schemaMetaData.getPostgresHost(),
+                schemaMetaData.getPostgresDB(),
+                schemaMetaData.getPostgresUser(),
+                schemaMetaData.getPostgresPassword(),
+                foreignKeyTable);
 
         StringBuilder foreignKeyClause = new StringBuilder();
-        for (ForeignKeyInfo foreignKey : foreignKeys){
+        for (ForeignKeyInfo foreignKey : foreignKeys) {
             foreignKeyClause.append(String.format(" %s.__%s = row.%s AND",
                     foreignKey.tableName().equals(fromTable) ? "b" : "a",
                     foreignKey.referencedColumnName(),
@@ -152,30 +132,30 @@ public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
 
         return String.format(
                 "CALL apoc.periodic.iterate(\n" +
-                "'%s',\n" +
-                "\"MATCH\n" +
-                "    (a:%s),\n" +
-                "    (b:%s)\n" +
-                "WHERE %s AND %s AND %s\n" +
-                "CREATE (a)-[r:%s]->(b)\",\n" +
-                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
-                    loadJdbcCall,
-                    edgeMapping.getFromNode(),
-                    edgeMapping.getToNode(),
-                    foreignKeyClause,
-                    primaryKeyClause,
-                    tableNameClause,
-                    edgeMapping.getEdgeLabel()
-                );
+                        "'%s',\n" +
+                        "\"MATCH\n" +
+                        "    (a:%s),\n" +
+                        "    (b:%s)\n" +
+                        "WHERE %s AND %s AND %s\n" +
+                        "CREATE (a)-[r:%s]->(b)\",\n" +
+                        "{batchSize:10000, parallel:true}) YIELD batches RETURN batches",
+                loadJdbcCall,
+                edgeMapping.getFromNode(),
+                edgeMapping.getToNode(),
+                foreignKeyClause,
+                primaryKeyClause,
+                tableNameClause,
+                edgeMapping.getEdgeLabel()
+        );
     }
 
-    private String buildCreateEdgesQueryFromJTMapping(JoinTableMapping edgeMapping) {
+    private String createEdgeFromJoinTableMapping(JoinTableMapping edgeMapping) {
         String loadJdbcCall = String.format("CALL apoc.load.jdbc(\"jdbc:postgresql://%s/%s?user=%s&password=%s\",\"%s\") YIELD row",
-                        postgresHost,
-                        postgresDB,
-                        postgresUser,
-                        postgresPassword,
-                        edgeMapping.getJoinTable());
+                schemaMetaData.getPostgresHost(),
+                schemaMetaData.getPostgresDB(),
+                schemaMetaData.getPostgresUser(),
+                schemaMetaData.getPostgresPassword(),
+                edgeMapping.getJoinTable());
 
         List<ForeignKeyInfo> fromTableForeignKeys = schemaMetaData.getForeignKeyInfoForTable(
                 edgeMapping.getJoinTable(),
@@ -220,13 +200,13 @@ public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
 
         return String.format(
                 "CALL apoc.periodic.iterate(" +
-                "'%s'," +
-                "\"MATCH" +
-                "    (a:%s)," +
-                "    (b:%s)" +
-                "WHERE %s AND %s AND %s" +
-                "CREATE (a)-[r:%s{%s}]->(b)\"," +
-                "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
+                        "'%s'," +
+                        "\"MATCH" +
+                        "    (a:%s)," +
+                        "    (b:%s)" +
+                        "WHERE %s AND %s AND %s" +
+                        "CREATE (a)-[r:%s{%s}]->(b)\"," +
+                        "{batchSize:10000, parallel:true, concurrency:100}) YIELD batches RETURN batches",
                 loadJdbcCall,
                 edgeMapping.getFromNode(),
                 edgeMapping.getToNode(),
@@ -236,31 +216,5 @@ public class PostgresMigrator extends Migrator<SQLSchemaMapping> {
                 edgeMapping.getEdgeLabel(),
                 mappedColumns
         );
-    }
-
-    private String buildCreateIndexQuery(SQLNodeMapping nodeMapping) {
-        String nodeLabel = nodeMapping.getNodeLabel();
-        String tableName = nodeMapping.getSqlTableName();
-        List<String> primaryKeyColumns = schemaMetaData
-                .getPrimaryKeyColumns(tableName)
-                .stream()
-                .map(column -> column.columnName)
-                .collect(Collectors.toList());
-
-        String call = String.format("CREATE INDEX %s IF NOT EXISTS FOR (n:%s) ON (",
-                (nodeLabel + "_" + tableName),
-                nodeLabel);
-        StringBuilder callBuilder = new StringBuilder(call);
-        primaryKeyColumns.forEach(column -> {
-            callBuilder.append(String.format("n.__%s,", column));
-        });
-        callBuilder.append("n.__table_name)");
-        return callBuilder.toString();
-    }
-
-    @Override
-    public void close() throws Exception {
-        super.close();
-        this.schemaMetaData.close();
     }
 }

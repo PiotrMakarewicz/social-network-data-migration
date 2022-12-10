@@ -31,4 +31,8 @@ public class ForeignKeyMapping extends SQLEdgeMapping {
     public String toString() {
         return super.toString() + String.format("Foreign key table: %s\n", foreignKeyTable);
     }
+
+    public String getReferencedTable() {
+        return foreignKeyTable.equals(getFromTable()) ? getToTable() : getFromTable();
+    }
 }

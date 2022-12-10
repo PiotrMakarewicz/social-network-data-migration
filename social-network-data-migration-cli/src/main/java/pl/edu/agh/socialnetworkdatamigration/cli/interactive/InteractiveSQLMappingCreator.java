@@ -5,30 +5,27 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.ForeignKeyMapping
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.JoinTableMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.SQLNodeMapping;
-import pl.edu.agh.socialnetworkdatamigration.core.utils.SchemaMetaData;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.DatabaseInfo;
 import pl.edu.agh.socialnetworkdatamigration.core.utils.info.TableInfo;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class InteractiveSQLMappingCreator {
-
     private final Map<String, SQLNodeMapping> nodeMappings = new HashMap<>();
     private final Map<String, SQLEdgeMapping> edgeMappings = new HashMap<>();
     private int nodeCounter = 0;
     private int edgeCounter = 0;
     private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private final DatabaseInfo databaseInfo;
+    private final boolean withIdentifyingFields;
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
-    public InteractiveSQLMappingCreator(String configPath) {
-        try (var schemaMetaData = SchemaMetaData.createFromConfig(configPath)) {
-            this.databaseInfo = schemaMetaData.getDatabaseInfo();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Couldn't open or close connection with database: " + e.getMessage());
-        }
+    public InteractiveSQLMappingCreator(DatabaseInfo databaseInfo, boolean withIdentifyingFields) {
+        this.databaseInfo = databaseInfo;
+        this.withIdentifyingFields = withIdentifyingFields;
     }
 
     public SQLSchemaMapping createInteractively() throws IOException {
@@ -131,7 +128,13 @@ public class InteractiveSQLMappingCreator {
         } while (true);
         System.out.println(databaseInfo.tableToString(table));
         Map<String, String> columnMappings = createColumnMappings(table);
-        SQLNodeMapping nodeMapping = new SQLNodeMapping(node, table, columnMappings);
+        List<String> identifyingFields;
+        if (withIdentifyingFields) {
+            identifyingFields = chooseIdentifyingFields(columnMappings);
+        } else {
+            identifyingFields = Collections.emptyList();
+        }
+        SQLNodeMapping nodeMapping = new SQLNodeMapping(node, table, columnMappings, identifyingFields);
         if (questionYesNo("Save mapping?") && !nodeMappings.containsValue(nodeMapping)) {
             String name = node + nodeCounter++;
             nodeMappings.put(name, nodeMapping);
@@ -361,6 +364,27 @@ public class InteractiveSQLMappingCreator {
             } while (!stopMappingCreation);
         }
         return columnMappings;
+    }
+
+    private List<String> chooseIdentifyingFields(Map<String, String> mappedColumns) throws IOException {
+        List<String> identifyingFields = new ArrayList<>();
+        do {
+            System.out.print("Field name: ");
+            String field = in.readLine();
+            if (field.isBlank()) {
+                if (questionYesNo("Stop adding identifying fields?")) {
+                    break;
+                } else {
+                    continue;
+                }
+            }
+            if (!mappedColumns.containsValue(field)) {
+                System.out.println("No such field.");
+            } else {
+                identifyingFields.add(field);
+            }
+        } while (true);
+        return identifyingFields;
     }
 
     private boolean questionYesNo(String prompt) throws IOException {

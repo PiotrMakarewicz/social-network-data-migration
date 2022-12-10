@@ -1,6 +1,6 @@
 {
   "fromNode": {
-    "nodeLabel": "Person",
+    "nodeLabel": "User",
     "mappedColumns": {
       "0": "id"
     },
@@ -8,19 +8,17 @@
       "id"
     ]
   },
-
   "toNode": {
-    "nodeLabel": "Person",
+    "nodeLabel": "User2",
     "mappedColumns": {
       "1": "id"
     },
     "identifyingFields": [
-      "id"
+      "incorrectField"
     ]
   },
-
   "edge": {
-    "edgeLabel": "InteractsWith",
+    "edgeLabel": "PostedAtWallOf",
     "mappedColumns": {
       "2": "creation_date"
     }

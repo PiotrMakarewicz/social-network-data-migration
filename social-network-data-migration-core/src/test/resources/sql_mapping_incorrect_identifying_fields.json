@@ -9,69 +9,60 @@
         "name": "name"
       },
       "identifyingFields": [
-        "id"
+        "incorrectField"
       ]
+    },
+    {
+      "sqlTableName": "comments",
+      "nodeLabel": "Post",
+      "mappedColumns": {
+        "id": "id",
+        "content": "content",
+        "date": "timestamp"
+      },
+      "identifyingFields": []
     },
     {
       "sqlTableName": "posts",
       "nodeLabel": "Post",
       "mappedColumns": {
         "id": "id",
-        "categoryno": "categoryno",
         "content": "content",
-        "date": "timestamp",
-        "link": "url",
-        "title": "title"
+        "date": "timestamp"
       },
-      "identifyingFields": [
-        "id"
-      ]
-    },
-    {
-      "sqlTableName": "comments",
-      "nodeLabel": "Comment",
-      "mappedColumns": {
-        "id": "id",
-        "content": "content",
-        "date": "timestamp",
-        "salon_id": "salon_id",
-        "title": "title"
-      },
-      "identifyingFields": [
-        "id"
-      ]
+      "identifyingFields": []
     },
     {
       "sqlTableName": "tags",
       "nodeLabel": "Tag",
       "mappedColumns": {
-        "name": "tag_name",
-        "id": "id"
+        "id": "id",
+        "name": "name"
       },
-      "identifyingFields": [
-        "id"
-      ]
+      "identifyingFields": []
     }
   ],
   "edges": [
     {
-      "edgeLabel": "IsAuthorOf",
-      "foreignKeyTable": "posts",
+      "edgeLabel": "IsAuthor",
+      "foreignKeyTable": "comments",
       "from": "authors",
-      "to": "posts"
+      "to": "comments"
     },
     {
-      "edgeLabel": "IsParentCommentOf",
+      "edgeLabel": "RefersTo",
       "foreignKeyTable": "comments",
       "from": "comments",
-      "to": "comments"
+      "to": "posts"
     },
     {
       "edgeLabel": "IsTaggedWith",
       "joinTable": "posts_tags",
       "from": "posts",
       "to": "tags",
-      "mappedColumns": {}
+      "mappedColumns": {
+        "timestamp": "timestamp"
+      }
     }
   ]
 }

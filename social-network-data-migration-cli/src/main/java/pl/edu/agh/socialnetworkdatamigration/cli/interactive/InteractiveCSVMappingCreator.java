@@ -5,10 +5,7 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.CSVEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.node.CSVNodeMapping;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.Integer.parseInt;
 import static pl.edu.agh.socialnetworkdatamigration.core.utils.CSVUtils.*;
@@ -21,14 +18,15 @@ public class InteractiveCSVMappingCreator {
     private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private final String csvInputPath;
     private final boolean withHeaders;
-    private final char fieldTerminator = '\t';
+    private final boolean withIdentifyingFields;
     private List<String> headers;
     private int columnCnt;
 
 
-    public InteractiveCSVMappingCreator(String csvInputPath, boolean withHeaders) {
+    public InteractiveCSVMappingCreator(String csvInputPath, boolean withHeaders, boolean withIdentifyingFields, char fieldTerminator) {
         this.csvInputPath = csvInputPath;
         this.withHeaders = withHeaders;
+        this.withIdentifyingFields = withIdentifyingFields;
         if (csvInputPath != null) {
             if (withHeaders) {
                 this.headers = getHeaders(csvInputPath, fieldTerminator);
@@ -206,9 +204,15 @@ public class InteractiveCSVMappingCreator {
         } while (true);
 
         var mappedColumns = createColumnMappings();
+        List<String> identifyingFields;
+        if (withIdentifyingFields) {
+            identifyingFields = chooseIdentifyingFields(mappedColumns);
+        } else {
+            identifyingFields = Collections.emptyList();
+        }
 
         if (questionYesNo("Save node mapping?"))
-            return new CSVNodeMapping(label, mappedColumns);
+            return new CSVNodeMapping(label, mappedColumns, identifyingFields);
         else
             return null;
     }
@@ -295,6 +299,27 @@ public class InteractiveCSVMappingCreator {
             return headersToIndexes(columnMappings, headers);
         else
             return keysToInt(columnMappings);
+    }
+
+    private List<String> chooseIdentifyingFields(Map<Integer, String> mappedColumns) throws IOException {
+        List<String> identifyingFields = new ArrayList<>();
+        do {
+            System.out.print("Field name: ");
+            String field = in.readLine();
+            if (field.isBlank()) {
+                if (questionYesNo("Stop adding identifying fields?")) {
+                    break;
+                } else {
+                    continue;
+                }
+            }
+            if (!mappedColumns.containsValue(field)) {
+                System.out.println("No such field.");
+            } else {
+                identifyingFields.add(field);
+            }
+        } while (true);
+        return identifyingFields;
     }
 
     private boolean questionYesNo(String prompt) throws IOException {

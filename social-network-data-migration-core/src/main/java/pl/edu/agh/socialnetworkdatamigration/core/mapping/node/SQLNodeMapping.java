@@ -2,15 +2,19 @@ package pl.edu.agh.socialnetworkdatamigration.core.mapping.node;
 
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SQLNodeMapping extends NodeMapping {
-    @Getter private final String sqlTableName;
-    @Getter private final Map<String, String> mappedColumns;
+    @Getter
+    private final String sqlTableName;
+    @Getter
+    private final Map<String, String> mappedColumns;
 
-    public SQLNodeMapping(String nodeLabel, String sqlTableName, Map<String, String> mappedColumns) {
-        super(nodeLabel);
+    public SQLNodeMapping(String nodeLabel, String sqlTableName, Map<String, String> mappedColumns, List<String> identifyingFields) {
+        super(nodeLabel, identifyingFields);
         this.sqlTableName = sqlTableName;
         this.mappedColumns = mappedColumns;
     }
@@ -31,7 +35,7 @@ public class SQLNodeMapping extends NodeMapping {
 
     @Override
     public String toString() {
-        String header =  super.toString() +
+        String header = super.toString() +
                 String.format("Table name:        %s\n", sqlTableName) +
                 "Mapped columns:\n";
         StringBuilder builder = new StringBuilder(header);
@@ -39,5 +43,13 @@ public class SQLNodeMapping extends NodeMapping {
             builder.append(String.format("\t%s -> %s\n", mapping.getKey(), mapping.getValue()));
         }
         return builder.toString();
+    }
+
+    public Optional<String> getColumnForField(String field) {
+        return mappedColumns.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().equals(field))
+                .findFirst()
+                .map(Map.Entry::getKey);
     }
 }

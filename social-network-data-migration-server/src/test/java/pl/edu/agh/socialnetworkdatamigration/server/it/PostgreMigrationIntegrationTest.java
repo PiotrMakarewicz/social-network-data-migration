@@ -22,6 +22,7 @@ import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.Postgre
 import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.PostgreMigrationRequestPayload;
 import pl.edu.agh.socialnetworkdatamigration.server.domain.MigrationStatus;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,13 +56,15 @@ public class PostgreMigrationIntegrationTest {
                 new SQLNodeMapping(
                         "User", "users",
                         Map.of("id", "user_id",
-                                "firstname", "name"))
+                                "firstname", "name"),
+                        Collections.emptyList())
         );
         sqlSchemaMapping.addNodeMapping(
                 new SQLNodeMapping(
                         "Post", "posts",
                         Map.of("id", "post_id",
-                                "content", "text"))
+                                "content", "text"),
+                        Collections.emptyList())
         );
         sqlSchemaMapping.addEdgeMapping(
                 new ForeignKeyMapping("IsAuthorOf", "User", "Post", "users", "posts", "posts"));

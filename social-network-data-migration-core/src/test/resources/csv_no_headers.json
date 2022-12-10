@@ -3,14 +3,18 @@
     "nodeLabel": "User",
     "mappedColumns": {
       "0": "id"
-    }
+    },
+    "identifyingFields": [
+      "id"
+    ]
   },
 
   "toNode": {
     "nodeLabel": "User2",
     "mappedColumns": {
       "1": "id"
-    }
+    },
+    "identifyingFields": []
   },
 
   "edge": {

@@ -21,6 +21,7 @@ repositories {
 dependencies {
     implementation project(':social-network-data-migration-core')
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.neo4j.driver:neo4j-java-driver:4.4.5'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:testcontainers:1.17.5'
     testImplementation 'org.testcontainers:junit-jupiter:1.17.5'
