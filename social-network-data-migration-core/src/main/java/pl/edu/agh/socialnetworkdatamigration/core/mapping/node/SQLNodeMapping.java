@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SQLNodeMapping extends NodeMapping {
     @Getter
@@ -44,12 +45,11 @@ public class SQLNodeMapping extends NodeMapping {
         return builder.toString();
     }
 
-    public String getColumnForField(String field) {
+    public Optional<String> getColumnForField(String field) {
         return mappedColumns.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().equals(field))
                 .findFirst()
-                .get()
-                .getKey();
+                .map(Map.Entry::getKey);
     }
 }

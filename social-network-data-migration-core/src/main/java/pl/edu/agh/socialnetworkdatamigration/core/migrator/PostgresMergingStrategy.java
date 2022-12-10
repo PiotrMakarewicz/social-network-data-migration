@@ -50,7 +50,9 @@ public class PostgresMergingStrategy extends PostgresStrategy {
 
         String mappedIdentifyingFields = nodeMapping.getIdentifyingFields()
                 .stream()
-                .map(field -> String.format("%s:row.%s", field, nodeMapping.getColumnForField(field)))
+                .map(field -> String.format("%s:row.%s",
+                        field,
+                        nodeMapping.getColumnForField(field).orElseThrow(() -> new RuntimeException("No column for field " + field))))
                 .collect(Collectors.joining(", "));
 
         String mappedNonIdentifyingFields = nodeMapping.getMappedColumns()
@@ -86,10 +88,10 @@ public class PostgresMergingStrategy extends PostgresStrategy {
 
     @Override
     protected String createEdgeQuery(SQLSchemaMapping schemaMapping, SQLEdgeMapping edgeMapping) {
-        SQLNodeMapping fromNode = schemaMapping.getNodeForTable(edgeMapping.getFromTable())
+        SQLNodeMapping fromNode = schemaMapping.getNodeMappingForTable(edgeMapping.getFromTable())
                 .orElseThrow(() -> new RuntimeException("No node mapping for table " + edgeMapping.getFromTable()));
 
-        SQLNodeMapping toNode = schemaMapping.getNodeForTable(edgeMapping.getToTable())
+        SQLNodeMapping toNode = schemaMapping.getNodeMappingForTable(edgeMapping.getToTable())
                 .orElseThrow(() -> new RuntimeException("No node mapping for table " + edgeMapping.getToTable()));
 
         String loadJdbcCall = loadJdbcCall(fromNode, toNode, edgeMapping);
@@ -115,7 +117,11 @@ public class PostgresMergingStrategy extends PostgresStrategy {
     private String nodeMatchClause(SQLNodeMapping node, String nodeVariable, String columnPrefix) {
         String toNodeMappedIdentifyingFields = node.getIdentifyingFields()
                 .stream()
-                .map(field -> String.format("%s:row.%s%s", field, columnPrefix, node.getColumnForField(field)))
+                .map(field -> String.format(
+                        "%s:row.%s%s",
+                        field,
+                        columnPrefix,
+                        node.getColumnForField(field).orElseThrow(() -> new RuntimeException("No column for field " + field))))
                 .collect(Collectors.joining(","));
 
         return String.format("MATCH (%s:%s{%s})", nodeVariable, node.getNodeLabel(), toNodeMappedIdentifyingFields);
@@ -237,9 +243,9 @@ public class PostgresMergingStrategy extends PostgresStrategy {
                 .stream()
                 .map(field -> String.format("%s.%s AS %s%s",
                         node.getSqlTableName(),
-                        node.getColumnForField(field),
+                        node.getColumnForField(field).orElseThrow(() -> new RuntimeException("No column for field " + field)),
                         tablePrefix,
-                        node.getColumnForField(field)))
+                        node.getColumnForField(field).orElseThrow(() -> new RuntimeException("No column for field " + field))))
                 .collect(Collectors.joining(", "));
     }
 
