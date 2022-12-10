@@ -18,14 +18,15 @@ public class InteractiveCSVMappingCreator {
     private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private final String csvInputPath;
     private final boolean withHeaders;
-    private final char fieldTerminator = '\t';
+    private final boolean withIdentifyingFields;
     private List<String> headers;
     private int columnCnt;
 
 
-    public InteractiveCSVMappingCreator(String csvInputPath, boolean withHeaders) {
+    public InteractiveCSVMappingCreator(String csvInputPath, boolean withHeaders, boolean withIdentifyingFields, char fieldTerminator) {
         this.csvInputPath = csvInputPath;
         this.withHeaders = withHeaders;
+        this.withIdentifyingFields = withIdentifyingFields;
         if (csvInputPath != null) {
             if (withHeaders) {
                 this.headers = getHeaders(csvInputPath, fieldTerminator);
@@ -203,7 +204,12 @@ public class InteractiveCSVMappingCreator {
         } while (true);
 
         var mappedColumns = createColumnMappings();
-        var identifyingFields = chooseIdentifyingFields(mappedColumns);
+        List<String> identifyingFields;
+        if (withIdentifyingFields) {
+            identifyingFields = chooseIdentifyingFields(mappedColumns);
+        } else {
+            identifyingFields = Collections.emptyList();
+        }
 
         if (questionYesNo("Save node mapping?"))
             return new CSVNodeMapping(label, mappedColumns, identifyingFields);

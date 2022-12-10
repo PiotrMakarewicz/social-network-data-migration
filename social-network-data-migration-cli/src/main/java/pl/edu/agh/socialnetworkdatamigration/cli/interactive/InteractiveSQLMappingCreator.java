@@ -20,10 +20,12 @@ public class InteractiveSQLMappingCreator {
     private int edgeCounter = 0;
     private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     private final DatabaseInfo databaseInfo;
+    private final boolean withIdentifyingFields;
     private final SQLSchemaMapping schemaMapping = new SQLSchemaMapping();
 
-    public InteractiveSQLMappingCreator(DatabaseInfo databaseInfo) {
+    public InteractiveSQLMappingCreator(DatabaseInfo databaseInfo, boolean withIdentifyingFields) {
         this.databaseInfo = databaseInfo;
+        this.withIdentifyingFields = withIdentifyingFields;
     }
 
     public SQLSchemaMapping createInteractively() throws IOException {
@@ -126,7 +128,12 @@ public class InteractiveSQLMappingCreator {
         } while (true);
         System.out.println(databaseInfo.tableToString(table));
         Map<String, String> columnMappings = createColumnMappings(table);
-        List<String> identifyingFields = chooseIdentifyingFields(columnMappings);
+        List<String> identifyingFields;
+        if (withIdentifyingFields) {
+            identifyingFields = chooseIdentifyingFields(columnMappings);
+        } else {
+            identifyingFields = Collections.emptyList();
+        }
         SQLNodeMapping nodeMapping = new SQLNodeMapping(node, table, columnMappings, identifyingFields);
         if (questionYesNo("Save mapping?") && !nodeMappings.containsValue(nodeMapping)) {
             String name = node + nodeCounter++;

@@ -1,6 +1,7 @@
 package pl.edu.agh.socialnetworkdatamigration.cli;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.text.StringEscapeUtils;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -36,7 +37,9 @@ public class SocialNetworkDataMigrationCLI {
             CsvStrategy migrationStrategy;
 
             if (cmd.hasOption('i')) {
-                schemaMapping = new InteractiveCSVMappingCreator(dataPath, hasHeaders).createInteractively();
+                char fieldTerminatorChar = StringEscapeUtils.unescapeJava(fieldTerminator).charAt(0);
+                var mappingCreator = new InteractiveCSVMappingCreator(dataPath, hasHeaders, cmd.hasOption("merge"), fieldTerminatorChar);
+                schemaMapping = mappingCreator.createInteractively();
             } else {
                 String mappingsPath = cmd.getOptionValue("mapping");
                 String jsonStr = Files.readString(Path.of(mappingsPath));
@@ -62,7 +65,7 @@ public class SocialNetworkDataMigrationCLI {
             PostgresStrategy migrationStrategy;
 
             if (cmd.hasOption('i')) {
-                schemaMapping = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo()).createInteractively();
+                schemaMapping = new InteractiveSQLMappingCreator(schemaMetaData.getDatabaseInfo(), cmd.hasOption("merge")).createInteractively();
             } else {
                 String mappingsPath = cmd.getOptionValue("mapping");
                 String jsonStr = Files.readString(Path.of(mappingsPath));
@@ -107,7 +110,7 @@ public class SocialNetworkDataMigrationCLI {
         Option mapping = Option.builder()
                 .hasArg(true)
                 .argName("Path to mapping file")
-                .required(true)
+                .required(false)
                 .longOpt("mapping")
                 .build();
 
