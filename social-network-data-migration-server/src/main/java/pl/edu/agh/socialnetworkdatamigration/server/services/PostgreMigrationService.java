@@ -15,17 +15,18 @@ import pl.edu.agh.socialnetworkdatamigration.server.exceptions.MigrationFailedEx
 @Service
 public class PostgreMigrationService {
     private final CommonMigrationService commonMigrationService;
+    private Migrator migrator;
 
-    PostgreMigrationService(@Autowired CommonMigrationService commonMigrationService) {
+    PostgreMigrationService(@Autowired CommonMigrationService commonMigrationService, @Autowired Migrator migrator) {
         this.commonMigrationService = commonMigrationService;
+        this.migrator = migrator;
     }
 
     public int startPostgresMigration(SQLSchemaMapping sqlSchemaMapping,
                                       PostgreConnectionParams postgreConnectionParams,
                                       Neo4jConnectionParams neo4jConnectionParams) {
         int migrationId = commonMigrationService.startMigration(() -> {
-            try (var migrator = new Migrator();
-                 var schemaMetadata = new SchemaMetaData(
+            try (var schemaMetadata = new SchemaMetaData(
                          postgreConnectionParams.getHost(),
                          postgreConnectionParams.getDbname(),
                          postgreConnectionParams.getUser(),
