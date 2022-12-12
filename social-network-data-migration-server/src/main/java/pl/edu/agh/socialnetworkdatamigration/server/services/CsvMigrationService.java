@@ -3,12 +3,14 @@ package pl.edu.agh.socialnetworkdatamigration.server.services;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.GraphDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.CSVSchemaMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.CsvAddingStrategy;
 import pl.edu.agh.socialnetworkdatamigration.core.migrator.Migrator;
 import pl.edu.agh.socialnetworkdatamigration.server.controllers.payloads.Neo4jConnectionParams;
 import pl.edu.agh.socialnetworkdatamigration.server.exceptions.MigrationFailedException;
 
+@Service
 public class CsvMigrationService {
     private final CommonMigrationService commonMigrationService;
 
