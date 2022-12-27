@@ -156,8 +156,8 @@ public class InteractiveCSVMappingCreator {
                 "\tShows the first 10 rows of the dataset.\n" +
                 "start migration\n" +
                 "\tFinishes interactive mapping creation and proceeds to migrate data.\n\n" +
-                "Use ENTER when asked for input to stop mapping creation.\n";
-        System.out.println(help);
+                "Use ENTER when asked for input to stop mapping creation.";
+        System.out.print(help);
     }
 
     private void head() {

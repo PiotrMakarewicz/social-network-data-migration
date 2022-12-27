@@ -341,7 +341,7 @@ public class InteractiveSQLMappingCreator {
                     break;
                 String prop;
                 do {
-                    System.out.println("Node/Edge property name: ");
+                    System.out.print("Node/Edge property name: ");
                     prop = in.readLine();
                     if (prop.isBlank()) {
                         if (questionYesNo("Stop current mapping creation?")) {
@@ -389,7 +389,7 @@ public class InteractiveSQLMappingCreator {
 
     private boolean questionYesNo(String prompt) throws IOException {
         while (true) {
-            System.out.println(prompt + " (y/n)");
+            System.out.print(prompt + " (y/n): ");
             System.out.flush();
             String stop = in.readLine();
             if (stop == null)

@@ -2,7 +2,7 @@
   "fromNode": {
     "nodeLabel": "Person",
     "mappedColumns": {
-      "0": "id"
+      "person_one": "id"
     },
     "identifyingFields": [
       "id"
@@ -10,19 +10,17 @@
   },
 
   "toNode": {
-    "nodeLabel": "Person",
+    "nodeLabel": "Person2",
     "mappedColumns": {
-      "1": "id"
+      "person_two": "id"
     },
-    "identifyingFields": [
-      "id"
-    ]
+    "identifyingFields": []
   },
 
   "edge": {
     "edgeLabel": "InteractsWith",
     "mappedColumns": {
-      "2": "creation_date"
+      "interaction_date": "creation_date"
     }
   }
 }

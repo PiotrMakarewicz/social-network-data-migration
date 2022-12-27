@@ -32,6 +32,6 @@ public abstract class NodeMapping {
 
     @Override
     public String toString() {
-        return String.format("Node label:        %s\nIdentifying fields:        %s", nodeLabel, identifyingFields);
+        return String.format("Node label:        %s\nIdentifying fields:        %s\n", nodeLabel, identifyingFields);
     }
 }
