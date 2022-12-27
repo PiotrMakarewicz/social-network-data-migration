@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import pl.edu.agh.socialnetworkdatamigration.server.MigrationRegistry;
 import pl.edu.agh.socialnetworkdatamigration.server.domain.MigrationStatus;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -29,6 +30,12 @@ public class MigrationStatusController {
         return status.orElseThrow(
                 () -> new ResponseStatusException(NOT_FOUND, "There is no migration with id " + migrationId)
         ).toString();
+    }
+
+    @RequestMapping(value = "migration_status", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Map<Integer, MigrationStatus> getAllMigrationStatuses(){
+        return registry.getAllMigrationStatuses();
     }
 
     @RequestMapping(value = "migration_failure_reason/{migrationId}", method = RequestMethod.GET, produces = "text/plain")
