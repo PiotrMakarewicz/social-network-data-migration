@@ -20,7 +20,7 @@
   "edge": {
     "edgeLabel": "InteractsWith",
     "mappedColumns": {
-      "interaction_date": "creation_date"
+      "interaction_timestamp": "creation_date"
     }
   }
 }
