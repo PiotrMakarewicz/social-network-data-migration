@@ -10,6 +10,8 @@ import pl.edu.agh.socialnetworkdatamigration.core.mapping.edge.SQLEdgeMapping;
 import pl.edu.agh.socialnetworkdatamigration.core.mapping.loader.json.SQLEdgeMappingDeserializer;
 
 import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Optional;
 
 public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
 
@@ -30,7 +32,7 @@ public class SQLMappingLoader implements MappingLoader<SQLSchemaMapping> {
                     if (nm.getSqlTableName() == null || nm.getMappedColumns().isEmpty() || nm.getNodeLabel() == null)
                         throw new RuntimeException("Invalid schema mapping JSON file");
 
-                    nm.getIdentifyingFields()
+                    Optional.ofNullable(nm.getIdentifyingFields()).orElse(List.of())
                             .stream()
                             .filter(field -> !nm.getMappedColumns().containsValue(field))
                             .findAny()
